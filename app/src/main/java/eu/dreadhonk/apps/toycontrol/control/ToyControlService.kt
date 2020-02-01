@@ -5,7 +5,9 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.bluetooth.BluetoothClass
+import android.content.Context
 import android.content.Intent
+import android.hardware.SensorManager
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
@@ -24,6 +26,7 @@ class ToyControlService : Service() {
     }
 
     public lateinit var client: ButtplugClient;
+    private lateinit var controlLoop: Thread;
 
     class Binder(service: ToyControlService): android.os.Binder() {
         private val service = service
@@ -61,7 +64,6 @@ class ToyControlService : Service() {
         startForeground(ONGOING_NOTIFICATION_ID, notification.build())
         Log.d("ToyControlService", "started into foreground")
 
-
         client = ButtplugEmbeddedClient(
             "ToyControl",
             ButtplugServerFactory(this)
@@ -80,6 +82,10 @@ class ToyControlService : Service() {
             // TODO: handle device removal in some smart way
             Log.d("ToyControlService", "device removed: "+(it.message as DeviceRemoved).deviceIndex)
         }
+
+        val sensors = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        controlLoop = Thread(ControlThread(this, 1000, sensors))
+        controlLoop.start()
     }
 
     fun on_client_initialized(ev: ButtplugEvent) {
