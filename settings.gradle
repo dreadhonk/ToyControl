@@ -1,2 +1,6 @@
-include ':app'
+include ':app', ':buttplug.server.managers.AndroidBluetoothManager', ':buttplug.core', ':buttplug.server', ':buttplug.client'
 rootProject.name='ToyControl'
+project(':buttplug.server.managers.AndroidBluetoothManager').projectDir = new File('buttplug-android/buttplug.server.managers.AndroidBluetoothManager')
+project(':buttplug.core').projectDir = new File('buttplug-android/buttplug.core')
+project(':buttplug.server').projectDir = new File('buttplug-android/buttplug.server')
+project(':buttplug.client').projectDir = new File('buttplug-android/buttplug.client')
