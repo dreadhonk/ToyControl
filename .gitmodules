@@ -1,0 +1,3 @@
+[submodule "buttplug-android"]
+	path = buttplug-android
+	url = https://github.com/dreadhonk/buttplug-android
