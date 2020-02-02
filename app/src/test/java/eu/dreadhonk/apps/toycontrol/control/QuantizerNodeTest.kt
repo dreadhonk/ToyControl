@@ -17,6 +17,7 @@ class QuantizerNodeTest {
         assertEquals(2, node.stepCount)
         assertEquals(1, node.inputs.size)
         assertEquals(1, node.outputs.size)
+        assertEquals(0.0f, node.deadZone)
     }
 
     @Test(expected = RuntimeException::class)
@@ -122,5 +123,41 @@ class QuantizerNodeTest {
 
         assertFalse(node.update())
         assertEquals(node.outputs[0], oldOutput)
+    }
+
+    @Test
+    fun deadZoneTestUpwards() {
+        node.stepCount = 11
+        node.deadZone = 0.1f // 10% dead zone
+
+        node.inputs[0] = 0.1f
+        node.update()
+        assertEquals(node.outputs[0], 0.1f)
+
+        node.inputs[0] = 0.041f
+        assertFalse(node.update())
+        assertEquals(node.outputs[0], 0.1f)
+
+        node.inputs[0] = 0.039f
+        assertTrue(node.update())
+        assertEquals(node.outputs[0], 0.0f)
+    }
+
+    @Test
+    fun deadZoneTestDownwards() {
+        node.stepCount = 11
+        node.deadZone = 0.1f // 10% dead zone
+
+        node.inputs[0] = 0.3f
+        node.update()
+        assertEquals(node.outputs[0], 0.3f)
+
+        node.inputs[0] = 0.359f
+        assertFalse(node.update())
+        assertEquals(node.outputs[0], 0.3f)
+
+        node.inputs[0] = 0.361f
+        assertTrue(node.update())
+        assertEquals(node.outputs[0], 0.4f)
     }
 }
