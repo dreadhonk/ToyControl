@@ -3,7 +3,7 @@ package eu.dreadhonk.apps.toycontrol.control
 import kotlin.math.max
 import kotlin.math.min
 
-open class NormalisedGravityNode: GravityNode() {
+class NormalisedGravityNode: GravityNode() {
     override var invalidated: Boolean = false
     override val outputs: FloatArray = floatArrayOf(0.0f, 0.0f, 0.0f)
 
