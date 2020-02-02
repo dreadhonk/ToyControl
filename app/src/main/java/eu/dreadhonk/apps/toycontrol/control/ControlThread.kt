@@ -21,6 +21,7 @@ class ControlThread(service: ToyControlService,
 
     private var gravity = Vector()
 
+
     override fun run() {
         // TODO: this should arguably move somewhere else
         val sensor = sensors.getDefaultSensor(Sensor.TYPE_GRAVITY)

@@ -7,6 +7,7 @@ import android.app.Service
 import android.bluetooth.BluetoothClass
 import android.content.Context
 import android.content.Intent
+import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
 import android.util.Log
@@ -26,7 +27,8 @@ class ToyControlService : Service() {
     }
 
     public lateinit var client: ButtplugClient;
-    private lateinit var controlLoop: Thread;
+    /* private lateinit var controlLoop: Thread; */
+    private lateinit var controller: ToyController
 
     class Binder(service: ToyControlService): android.os.Binder() {
         private val service = service
@@ -84,8 +86,11 @@ class ToyControlService : Service() {
         }
 
         val sensors = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        controlLoop = Thread(ControlThread(this, 1000, sensors))
-        controlLoop.start()
+        /* controlLoop = Thread(ControlThread(this, 1000, sensors))
+        controlLoop.start() */
+
+        controller = ToyController(sensors, this, client)
+        controller.start()
     }
 
     fun on_client_initialized(ev: ButtplugEvent) {
