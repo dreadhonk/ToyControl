@@ -22,7 +22,7 @@ class ToyController(private val sensors: SensorManager,
     private var gravityNode = NormalisedGravityNode()
     private var quantiser = QuantizerNode(20)
     private var rateLimiter = RateLimitNode(250, 1)
-    private var toy = SinkNode(1)
+    private var toy = ToyNode(1) { setToy(it) }
 
     companion object {
         public const val UPDATE_ON_INPUT_CHANGE = -1L;
@@ -104,21 +104,19 @@ class ToyController(private val sensors: SensorManager,
         worker.interrupt()
     }
 
-    private fun do_update(): Long {
-        toy.updateCalled = false
-        val delay = graph.update()
+    private fun setToy(values: FloatArray) {
+        val value = values[0]
 
-        if (toy.updateCalled) {
-            Log.i("ToyController", String.format("toy speed update to: %.2f", rateLimiter.outputs[0]))
-            for (deviceIndex in client.devices.keys) {
-                val device = client.devices.get(deviceIndex)!!
-                Log.v("ToyController", String.format("setting %.3f to %s", rateLimiter.outputs[0], device.deviceName))
-                client.sendDeviceMessage(deviceIndex, SingleMotorVibrateCmd(deviceIndex, rateLimiter.outputs[0].toDouble(), client.nextMsgId))
-            }
+        Log.i("ToyController", String.format("toy speed update to: %.2f", value))
+        for (deviceIndex in client.devices.keys) {
+            val device = client.devices.get(deviceIndex)!!
+            Log.v("ToyController", String.format("setting %.3f to %s", value, device.deviceName))
+            client.sendDeviceMessage(deviceIndex, SingleMotorVibrateCmd(deviceIndex, value.toDouble(), client.nextMsgId))
         }
+    }
 
-        Log.d("ToyController", String.format("next update delay = %d", delay))
-        return delay
+    private fun do_update(): Long {
+        return graph.update()
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
