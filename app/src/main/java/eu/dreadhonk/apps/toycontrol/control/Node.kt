@@ -5,6 +5,8 @@ interface BaseNode {
      * @brief Output register for the outputs
      */
     val outputs: FloatArray
+
+    var invalidated: Boolean
 }
 
 interface Node: BaseNode {
@@ -19,8 +21,6 @@ interface Node: BaseNode {
      * Return true if at least one output changed.
      */
     fun update(): Long
-
-    var invalidated: Boolean
 }
 
 interface ExternalNode: BaseNode {

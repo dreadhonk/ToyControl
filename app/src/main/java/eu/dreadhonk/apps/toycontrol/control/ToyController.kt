@@ -22,6 +22,7 @@ class ToyController(private val sensors: SensorManager,
     private var gravityNode = NormalisedGravityNode()
     private var quantiser = QuantizerNode(20)
     private var rateLimiter = RateLimitNode(250, 1)
+    private var toy = SinkNode(1)
 
     companion object {
         public const val UPDATE_ON_INPUT_CHANGE = -1L;
@@ -73,8 +74,19 @@ class ToyController(private val sensors: SensorManager,
 
     private val worker = Worker { do_update() }
 
+    private val graph = ControlGraph()
+
     init {
         quantiser.deadZone = 0.1f
+
+        graph.addExternalNode(gravityNode)
+        graph.addNode(quantiser)
+        graph.addNode(rateLimiter)
+        graph.addNode(toy)
+
+        graph.link(gravityNode, 2, quantiser, 0)
+        graph.link(quantiser, 0, rateLimiter, 0)
+        graph.link(rateLimiter, 0, toy, 0)
     }
 
     fun start() {
@@ -93,29 +105,20 @@ class ToyController(private val sensors: SensorManager,
     }
 
     private fun do_update(): Long {
-        quantiser.inputs[0] = gravityNode.outputs[2]
-        var delay = quantiser.update()
-        if (delay != UPDATE_IMMEDIATELY && !rateLimiter.invalidated) {
-            // Log.v("ToyController", "update swallowed by quantiser")
-            return delay;
+        toy.updateCalled = false
+        val delay = graph.update()
+
+        if (toy.updateCalled) {
+            Log.i("ToyController", String.format("toy speed update to: %.2f", rateLimiter.outputs[0]))
+            for (deviceIndex in client.devices.keys) {
+                val device = client.devices.get(deviceIndex)!!
+                Log.v("ToyController", String.format("setting %.3f to %s", rateLimiter.outputs[0], device.deviceName))
+                client.sendDeviceMessage(deviceIndex, SingleMotorVibrateCmd(deviceIndex, rateLimiter.outputs[0].toDouble(), client.nextMsgId))
+            }
         }
 
-        rateLimiter.inputs[0] = quantiser.outputs[0]
-        delay = rateLimiter.update()
-        if (delay != UPDATE_IMMEDIATELY) {
-            Log.v("ToyController", String.format("update blocked by rate limiter for %d ms", delay))
-            return delay;
-        }
-
-        Log.i("ToyController", String.format("toy speed update to: %.2f", rateLimiter.outputs[0]))
-
-        for (deviceIndex in client.devices.keys) {
-            val device = client.devices.get(deviceIndex)!!
-            Log.v("ControlThread", String.format("setting %.3f to %s", rateLimiter.outputs[0], device.deviceName))
-            client.sendDeviceMessage(deviceIndex, SingleMotorVibrateCmd(deviceIndex, rateLimiter.outputs[0].toDouble(), client.nextMsgId))
-        }
-
-        return UPDATE_ON_INPUT_CHANGE
+        Log.d("ToyController", String.format("next update delay = %d", delay))
+        return delay
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
