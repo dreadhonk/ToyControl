@@ -18,16 +18,18 @@ interface Node: BaseNode {
      *
      * Return true if at least one output changed.
      */
-    fun update(): Boolean
+    fun update(): Long
+
+    var invalidated: Boolean
 }
 
 interface ExternalNode: BaseNode {
     val inputCount: Int
 
-    fun push(inputs: FloatArray): Boolean {
+    fun push(inputs: FloatArray): Long {
         if (inputs.size != inputCount) {
             throw IllegalArgumentException(String.format("must have exactly %d inputs (got %d)", inputCount, inputs.size))
         }
-        return true
+        return ToyController.UPDATE_IMMEDIATELY
     }
 }

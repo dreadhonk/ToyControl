@@ -5,6 +5,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class QuantizerNode(stepCounta: Int = 2): Node {
+    override var invalidated: Boolean = true
     override val inputs: FloatArray = floatArrayOf(0.0f)
     override val outputs: FloatArray = floatArrayOf(0.0f)
 
@@ -38,7 +39,8 @@ class QuantizerNode(stepCounta: Int = 2): Node {
         stepCount = stepCounta
     }
 
-    override fun update(): Boolean {
+    override fun update(): Long {
+        invalidated = false
         val divider = (m_stepCount - 1).toFloat()
         val quantizedInput = Math.round(min(max(inputs[0], 0.0f), 1.0f) * divider)
 
@@ -59,9 +61,9 @@ class QuantizerNode(stepCounta: Int = 2): Node {
                 threshold
             )) */
             if (quantizedInput > m_qinput && inputs[0] < threshold) {
-                return false
+                return ToyController.UPDATE_ON_INPUT_CHANGE
             } else if (quantizedInput < m_qinput && inputs[0] > threshold) {
-                return false
+                return ToyController.UPDATE_ON_INPUT_CHANGE
             }
         }
 
@@ -69,6 +71,10 @@ class QuantizerNode(stepCounta: Int = 2): Node {
         m_qinput = quantizedInput
         val quantizedOutput = quantizedInput.toFloat() / divider
         outputs[0] = quantizedOutput
-        return changed
+        if (changed) {
+            return ToyController.UPDATE_IMMEDIATELY
+        } else {
+            return ToyController.UPDATE_ON_INPUT_CHANGE
+        }
     }
 }
