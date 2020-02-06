@@ -8,7 +8,7 @@ import android.hardware.SensorManager
 import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
-import org.metafetish.buttplug.client.ButtplugClient
+import eu.dreadhonk.apps.toycontrol.devices.DeviceManager
 import org.metafetish.buttplug.core.Messages.SingleMotorVibrateCmd
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 
 class ToyController(private val sensors: SensorManager,
                     private val context: Context,
-                    private val client: ButtplugClient): SensorEventListener {
+                    private val devices: DeviceManager): SensorEventListener {
 
     private var gravityNode = NormalisedGravityNode()
     private var quantiser = QuantizerNode(20)
@@ -108,10 +108,13 @@ class ToyController(private val sensors: SensorManager,
         val value = values[0]
 
         Log.i("ToyController", String.format("toy speed update to: %.2f", value))
-        for (deviceIndex in client.devices.keys) {
-            val device = client.devices.get(deviceIndex)!!
-            Log.v("ToyController", String.format("setting %.3f to %s", value, device.deviceName))
-            client.sendDeviceMessage(deviceIndex, SingleMotorVibrateCmd(deviceIndex, value.toDouble(), client.nextMsgId))
+        for (provider in devices.providers) {
+            for (device in provider.devices()) {
+                for (motorIndex in device.motors.indices) {
+                    Log.v("ToyController", "setting motor ${motorIndex} on device ${device.displayName} from provider ${provider.uri} to ${value}")
+                    provider.setMotor(device.providerDeviceId, motorIndex, value)
+                }
+            }
         }
     }
 

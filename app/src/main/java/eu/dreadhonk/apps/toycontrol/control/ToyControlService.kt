@@ -12,14 +12,21 @@ import android.hardware.SensorManager
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import androidx.room.Room
 import eu.dreadhonk.apps.toycontrol.MainActivity
 import eu.dreadhonk.apps.toycontrol.R
 import eu.dreadhonk.apps.toycontrol.buttplugintf.ButtplugServerFactory
+import eu.dreadhonk.apps.toycontrol.data.Device
+import eu.dreadhonk.apps.toycontrol.data.DeviceDatabase
+import eu.dreadhonk.apps.toycontrol.data.DeviceWithIO
+import eu.dreadhonk.apps.toycontrol.data.Provider
+import eu.dreadhonk.apps.toycontrol.devices.*
 import org.metafetish.buttplug.client.ButtplugClient
 import org.metafetish.buttplug.client.ButtplugEmbeddedClient
 import org.metafetish.buttplug.core.ButtplugEvent
 import org.metafetish.buttplug.core.Messages.DeviceAdded
 import org.metafetish.buttplug.core.Messages.DeviceRemoved
+import java.util.concurrent.Executors
 
 class ToyControlService : Service() {
     companion object {
@@ -29,6 +36,22 @@ class ToyControlService : Service() {
     public lateinit var client: ButtplugClient;
     /* private lateinit var controlLoop: Thread; */
     private lateinit var controller: ToyController
+    private lateinit var database: DeviceDatabase
+    private lateinit var deviceManager: DeviceManager
+
+    private val deviceListener = object : DeviceManagerCallbacks {
+        override fun deviceDeleted(provider: Provider, device: Device) {
+            Log.i("ToyControlService", "Device deleted: ${device.displayName} (at ${provider.displayName})")
+        }
+
+        override fun deviceOffline(provider: Provider, device: Device) {
+            Log.i("ToyControlService", "Device went offline: ${device.displayName} (at ${provider.displayName})")
+        }
+
+        override fun deviceOnline(provider: Provider, device: DeviceWithIO) {
+            Log.i("ToyControlService", "Device came online: ${device.device.displayName} (at ${provider.displayName})")
+        }
+    }
 
     class Binder(service: ToyControlService): android.os.Binder() {
         private val service = service
@@ -66,37 +89,32 @@ class ToyControlService : Service() {
         startForeground(ONGOING_NOTIFICATION_ID, notification.build())
         Log.d("ToyControlService", "started into foreground")
 
+        database = Room.databaseBuilder(
+            applicationContext,
+            DeviceDatabase::class.java,
+            "toy-database"
+        ).build()
+
+        deviceManager = DeviceManager(database)
+        deviceManager.listener = deviceListener
+
         client = ButtplugEmbeddedClient(
             "ToyControl",
             ButtplugServerFactory(this)
         )
-        client.initialized.addCallback {
-            on_client_initialized(it)
-        }
-        client.errorReceived.addCallback {
-            // TODO: handle errors in some smart way
-        }
-        client.deviceAdded.addCallback {
-            // TODO: handle device addition in some smart way
-            Log.d("ToyControlService", "device added: "+(it.message as DeviceAdded).deviceName)
-        }
-        client.deviceRemoved.addCallback {
-            // TODO: handle device removal in some smart way
-            Log.d("ToyControlService", "device removed: "+(it.message as DeviceRemoved).deviceIndex)
+
+        // TODO: think about the thread-safety of this...
+        Executors.newSingleThreadExecutor().execute {
+            deviceManager.registerProvider(DebugDeviceProvider(), "Test devices")
+            val bpProvider = ButtplugDeviceProvider(client)
+            bpProvider.initiateScan() // will be queued until connect!
+            deviceManager.registerProvider(bpProvider, "Local toys")
         }
 
         val sensors = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        /* controlLoop = Thread(ControlThread(this, 1000, sensors))
-        controlLoop.start() */
 
-        controller = ToyController(sensors, this, client)
+        controller = ToyController(sensors, this, deviceManager)
         controller.start()
-    }
-
-    fun on_client_initialized(ev: ButtplugEvent) {
-        val notification = makeNotification(getText(R.string.notification_state_disconnected))
-        NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, notification.build())
-        client.startScanning()
     }
 
     override fun onDestroy() {

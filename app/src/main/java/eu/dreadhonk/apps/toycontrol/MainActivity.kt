@@ -9,15 +9,22 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.text.Layout
 import android.util.Log
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
+import androidx.arch.core.executor.ArchTaskExecutor
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import eu.dreadhonk.apps.toycontrol.control.ToyControlService
 import org.metafetish.buttplug.client.ButtplugClient
 import org.metafetish.buttplug.core.ButtplugEvent
 import org.metafetish.buttplug.core.Messages.DeviceAdded
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
     companion object {
