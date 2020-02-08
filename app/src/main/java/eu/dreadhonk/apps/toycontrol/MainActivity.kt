@@ -52,6 +52,13 @@ class MainActivity : AppCompatActivity() {
                 connect()
             }
         }
+
+        findViewById<Button>(R.id.btn_control).also {
+            it.setOnClickListener {
+                val intent = Intent(this, ControlActivity::class.java)
+                startActivity(intent)
+            }
+        }
     }
 
     override fun onStart() {

@@ -7,8 +7,9 @@
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:layout_width="408dp"
-        android:layout_height="340dp"
+        android:id="@+id/main_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -26,5 +27,29 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Scan" />
+
+        <Button
+            android:id="@+id/btn_control"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enter Control Mode" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/scrollable_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
