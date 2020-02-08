@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">ToyControl</string>
 
-    <string name="notification_state_disconnected">Not connected</string>
-    <string name="notification_state_connected">Controlling your toys</string>
+    <string name="notification_text">Controlling your toys</string>
 </resources>

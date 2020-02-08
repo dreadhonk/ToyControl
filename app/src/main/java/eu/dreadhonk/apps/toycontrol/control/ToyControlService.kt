@@ -84,7 +84,7 @@ class ToyControlService : Service() {
 
         Log.d("ToyControlService", "onCreate called")
 
-        val notification = makeNotification(getText(R.string.notification_state_disconnected))
+        val notification = makeNotification(getText(R.string.notification_text))
 
         startForeground(ONGOING_NOTIFICATION_ID, notification.build())
         Log.d("ToyControlService", "started into foreground")
