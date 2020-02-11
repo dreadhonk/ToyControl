@@ -67,7 +67,7 @@ class ToyController(private val sensors: SensorManager,
             jobQueue.put(job)
         }
 
-        fun post(job: () -> Any) {
+        fun post(job: () -> Unit) {
             jobQueue.put(Runnable { job() })
         }
     }
