@@ -79,7 +79,7 @@ class ToyController(private val sensors: SensorManager,
     init {
         quantiser.deadZone = 0.1f
 
-        graph.addExternalNode(gravityNode)
+        graph.addNode(gravityNode)
         graph.addNode(quantiser)
         graph.addNode(rateLimiter)
         graph.addNode(toy)
@@ -126,8 +126,10 @@ class ToyController(private val sensors: SensorManager,
     }
 
     override fun onSensorChanged(event: SensorEvent) {
+        val values = event.values
         worker.post {
-            gravityNode.push(event.values)
+            values.copyInto(gravityNode.inputs)
+            gravityNode.invalidated = true
         }
     }
 }

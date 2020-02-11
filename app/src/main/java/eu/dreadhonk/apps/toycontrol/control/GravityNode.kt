@@ -1,5 +1,5 @@
 package eu.dreadhonk.apps.toycontrol.control
 
-abstract class GravityNode: ExternalNode {
-    override val inputCount: Int = 3
+abstract class GravityNode: Node {
+    override val inputs = FloatArray(3)
 }

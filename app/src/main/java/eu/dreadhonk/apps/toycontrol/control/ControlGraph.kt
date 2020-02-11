@@ -2,16 +2,11 @@ package eu.dreadhonk.apps.toycontrol.control
 
 import android.util.Log
 import java.lang.IllegalArgumentException
-import kotlin.math.min
 
 class ControlGraph {
-    private val externalNodes = ArrayList<ExternalNode>();
-    private val otherNodes = ArrayList<Node>();
+    private val nodes = ArrayList<Node>();
     private var topologyInvalidated = true
     private var sortedNodes = ArrayList<Node>();
-
-    private data class BaseNodeSlot(public val node: BaseNode, public val ioIndex: Int) {
-    }
 
     private data class NodeSlot(public val node: Node, public val ioIndex: Int) {
     }
@@ -25,20 +20,20 @@ class ControlGraph {
      *
      * keys are nodes which output values, value is an array of the destinations
      */
-    private val outEdges = HashMap<BaseNode, ArrayList<HalfEdge> >();
+    private val outEdges = HashMap<Node, ArrayList<HalfEdge> >();
 
     /**
      * Map the edges which terminate at a node.
      *
      * keys are the inputs, values are the outputs.
      */
-    private val inEdges = HashMap<NodeSlot, BaseNodeSlot>();
+    private val inEdges = HashMap<NodeSlot, NodeSlot>();
 
-    private val dirtyFlags = HashMap<BaseNode, Boolean>();
+    private val dirtyFlags = HashMap<Node, Boolean>();
 
     // handling of dirty bits (hehe)
 
-    private fun nodeHasInternalInputs(node: Node, inEdges: HashMap<NodeSlot, BaseNodeSlot>? = null): Boolean {
+    private fun nodeHasInternalInputs(node: Node, inEdges: HashMap<NodeSlot, NodeSlot>? = null): Boolean {
         val inEdges = if (inEdges == null) {
             this.inEdges
         } else {
@@ -52,10 +47,6 @@ class ControlGraph {
                 // input unassigned
                 continue;
             }
-            if (outSlot.node is ExternalNode) {
-                // does not count as input
-                continue;
-            }
             // valid input, abort
             return true
         }
@@ -67,22 +58,18 @@ class ControlGraph {
         topologyInvalidated = false
         Log.v("ControlGraph", "updateTopology()")
         val noincoming = ArrayList<Node>();
-        val tmpOutEdges = (outEdges.clone() as HashMap<BaseNode, ArrayList<HalfEdge>>)!!
-        val tmpInEdges = HashMap<NodeSlot, BaseNodeSlot>();
+        val tmpOutEdges = (outEdges.clone() as HashMap<Node, ArrayList<HalfEdge>>)
+        val tmpInEdges = HashMap<NodeSlot, NodeSlot>();
 
         for (k in inEdges.keys) {
             val v = inEdges.get(k)!!
-            if (v.node is ExternalNode) {
-                // remove this edge, external nodes are always evaluated first
-                continue
-            }
             tmpInEdges.put(k, v)
         }
 
         sortedNodes.clear()
-        sortedNodes.ensureCapacity(otherNodes.size)
+        sortedNodes.ensureCapacity(nodes.size)
 
-        for (inNode in otherNodes) {
+        for (inNode in nodes) {
             if (!nodeHasInternalInputs(inNode, tmpInEdges)) {
                 Log.v("ControlGraph", String.format("updateTopology: adding %s to initial set", inNode.javaClass.simpleName))
                 noincoming.add(inNode)
@@ -99,9 +86,6 @@ class ControlGraph {
             }
 
             for (edge in dests) {
-                if (edge.dest.node is ExternalNode) {
-                    throw RuntimeException("again, terribly wrong")
-                }
                 tmpInEdges.remove(edge.dest)
                 if (!nodeHasInternalInputs(edge.dest.node, tmpInEdges)) {
                     if (noincoming.contains(edge.dest.node)) {
@@ -119,19 +103,14 @@ class ControlGraph {
             throw IllegalArgumentException("graph has loops: that's bad")
         }
 
-        if (sortedNodes.size != otherNodes.size) {
+        if (sortedNodes.size != nodes.size) {
             throw RuntimeException("something went terribly wrong")
         }
     }
 
 
     public fun addNode(node: Node) {
-        otherNodes.add(node)
-        topologyInvalidated = true
-    }
-
-    public fun addExternalNode(node: ExternalNode) {
-        externalNodes.add(node)
+        nodes.add(node)
         topologyInvalidated = true
     }
 
@@ -148,7 +127,7 @@ class ControlGraph {
         topologyInvalidated = true
     }
 
-    public fun link(outputNode: BaseNode, outputIndex: Int,
+    public fun link(outputNode: Node, outputIndex: Int,
                     inputNode: Node, inputIndex: Int)
     {
         if (outputNode.outputs.size <= outputIndex || outputIndex < 0) {
@@ -160,7 +139,7 @@ class ControlGraph {
         }
 
         val inSlot = NodeSlot(inputNode, inputIndex)
-        val outSlot = BaseNodeSlot(outputNode, outputIndex)
+        val outSlot = NodeSlot(outputNode, outputIndex)
         if (inEdges.containsKey(inSlot)) {
             unlinkInput(inputNode, inputIndex)
         }
@@ -195,10 +174,6 @@ class ControlGraph {
         }
 
         dirtyFlags.clear()
-        for (node in externalNodes) {
-            dirtyFlags.put(node, node.invalidated)
-            Log.v("ControlGraph", String.format("external node %s marked as dirty: %s", node.javaClass.simpleName, node.invalidated))
-        }
 
         for (inNode in sortedNodes) {
             var updated = false
