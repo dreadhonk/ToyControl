@@ -7,23 +7,21 @@ class EnvelopeNode(
     init: Float = 0.0f
 ): Node {
     override val inputs = FloatArray(nIO)
-    private val buffer = FloatArray(nIO) { init }
-    override val outputs = FloatArray(nIO)
+    override val outputs = FloatArray(nIO) { init }
 
     override var invalidated: Boolean = true
 
     override fun update(): Long {
         for (i in inputs.indices) {
-            val curr = buffer[i]
+            val curr = outputs[i]
             val new = inputs[i]
             if (new < curr) {
-                buffer[i] = Math.max(curr * decay, new)
+                outputs[i] = Math.max(curr * decay, new)
             } else {
-                buffer[i] = curr + (new - curr) * attack
+                outputs[i] = curr + (new - curr) * attack
             }
         }
-
         invalidated = false
-        return ToyController.UPDATE_ON_INPUT_CHANGE
+        return ToyController.UPDATE_IMMEDIATELY
     }
 }
