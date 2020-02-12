@@ -84,23 +84,23 @@ class QuantizerNodeTest {
         assertEquals(node.outputs[0], 0.0f)
 
         node.inputs[0] = 0.12f
-        assertFalse(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_ON_INPUT_CHANGE)
         assertEquals(node.outputs[0], 0.0f)
 
         node.inputs[0] = 0.4f
-        assertTrue(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_IMMEDIATELY)
         assertEquals(node.outputs[0], 0.5f)
 
         node.inputs[0] = 0.2f
-        assertTrue(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_IMMEDIATELY)
         assertEquals(node.outputs[0], 0.25f)
 
         node.inputs[0] = 0.9f
-        assertTrue(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_IMMEDIATELY)
         assertEquals(node.outputs[0], 1.0f)
 
         node.inputs[0] = 0.875f
-        assertFalse(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_ON_INPUT_CHANGE)
         assertEquals(node.outputs[0], 1.0f)
     }
 
@@ -109,7 +109,7 @@ class QuantizerNodeTest {
         node.stepCount = 2
         node.inputs[0] = 0.0f
         val oldOutput = node.outputs[0]
-        assertTrue(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_IMMEDIATELY)
         assertEquals(node.outputs[0], oldOutput)
     }
 
@@ -118,10 +118,10 @@ class QuantizerNodeTest {
         node.stepCount = 2
         node.inputs[0] = 0.0f
         val oldOutput = node.outputs[0]
-        assertTrue(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_IMMEDIATELY)
         assertEquals(node.outputs[0], oldOutput)
 
-        assertFalse(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_ON_INPUT_CHANGE)
         assertEquals(node.outputs[0], oldOutput)
     }
 
@@ -135,11 +135,11 @@ class QuantizerNodeTest {
         assertEquals(node.outputs[0], 0.1f)
 
         node.inputs[0] = 0.041f
-        assertFalse(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_ON_INPUT_CHANGE)
         assertEquals(node.outputs[0], 0.1f)
 
         node.inputs[0] = 0.039f
-        assertTrue(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_IMMEDIATELY)
         assertEquals(node.outputs[0], 0.0f)
     }
 
@@ -153,11 +153,11 @@ class QuantizerNodeTest {
         assertEquals(node.outputs[0], 0.3f)
 
         node.inputs[0] = 0.359f
-        assertFalse(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_ON_INPUT_CHANGE)
         assertEquals(node.outputs[0], 0.3f)
 
         node.inputs[0] = 0.361f
-        assertTrue(node.update())
+        assertEquals(node.update(), ToyController.UPDATE_IMMEDIATELY)
         assertEquals(node.outputs[0], 0.4f)
     }
 }

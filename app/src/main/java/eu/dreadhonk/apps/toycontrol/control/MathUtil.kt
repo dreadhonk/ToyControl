@@ -17,9 +17,9 @@ class MathUtil {
             return Math.sqrt(agg).toFloat()
         }
 
-        fun normalise(vec: FloatArray): FloatArray {
+        fun normalise(vec: FloatArray, cutoff: Float = 0.0f): FloatArray {
             val len = length(vec)
-            if (len == 0.0f) {
+            if (len <= cutoff) {
                 return FloatArray(vec.size) { 0.0f }
             }
 

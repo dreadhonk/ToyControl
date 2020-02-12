@@ -14,32 +14,37 @@ class NormalisedGravityNodeTest {
 
     @Test
     fun treatSmallInputsAsNull() {
-        node.push(arrayListOf(0.000001f, 0.000002f, 0.000003f))
-        assertEquals(node.outputs[0], 0.0f)
-        assertEquals(node.outputs[1], 0.0f)
-        assertEquals(node.outputs[2], 0.0f)
+        floatArrayOf(0.000001f, 0.000002f, 0.000003f).copyInto(node.inputs)
+        node.update()
+        assertEquals(0.0f, node.outputs[0])
+        assertEquals(0.0f, node.outputs[1])
+        assertEquals(0.0f, node.outputs[2])
     }
 
     @Test
     fun outputNormalisedVector() {
-        node.push(arrayListOf(1.0f, 0.0f, 0.0f))
-        assertEquals(node.outputs[0], 1.0f)
-        assertEquals(node.outputs[1], 0.0f)
-        assertEquals(node.outputs[2], 0.0f)
+        floatArrayOf(1.0f, 0.0f, 0.0f).copyInto(node.inputs)
+        node.update()
+        assertEquals(1.0f, node.outputs[0])
+        assertEquals(0.0f, node.outputs[1])
+        assertEquals(0.0f, node.outputs[2])
 
-        node.push(arrayListOf(9.0f, 0.0f, 0.0f))
-        assertEquals(node.outputs[0], 1.0f)
-        assertEquals(node.outputs[1], 0.0f)
-        assertEquals(node.outputs[2], 0.0f)
+        floatArrayOf(9.0f, 0.0f, 0.0f).copyInto(node.inputs)
+        node.update()
+        assertEquals(1.0f, node.outputs[0])
+        assertEquals(0.0f, node.outputs[1])
+        assertEquals(0.0f, node.outputs[2])
 
-        node.push(arrayListOf(1.0f, 1.0f, 1.0f))
-        assertEquals(node.outputs[0], 0.5773502691896258f)
-        assertEquals(node.outputs[1], 0.5773502691896258f)
-        assertEquals(node.outputs[2], 0.5773502691896258f)
+        floatArrayOf(1.0f, 1.0f, 1.0f).copyInto(node.inputs)
+        node.update()
+        assertEquals(0.5773502691896258f, node.outputs[0])
+        assertEquals(0.5773502691896258f, node.outputs[1])
+        assertEquals(0.5773502691896258f, node.outputs[2])
 
-        node.push(arrayListOf(0.0f, 1.0f, 1.0f))
-        assertEquals(node.outputs[0], 0.7071067811865475f)
-        assertEquals(node.outputs[1], 0.7071067811865475f)
-        assertEquals(node.outputs[2], 0.7071067811865475f)
+        floatArrayOf(0.0f, 1.0f, 1.0f).copyInto(node.inputs)
+        node.update()
+        assertEquals(0.0f, node.outputs[0])
+        assertEquals(0.7071067811865475f, node.outputs[1])
+        assertEquals(0.7071067811865475f, node.outputs[2])
     }
 }
