@@ -6,6 +6,7 @@ class MagnitudeNode(
     override val inputs = FloatArray(nIO)
     override val outputs = FloatArray(1)
     override var invalidated: Boolean = true
+    override val hasSideEffects = false
 
     override fun update(): Long {
         outputs[0] = MathUtil.length(inputs)

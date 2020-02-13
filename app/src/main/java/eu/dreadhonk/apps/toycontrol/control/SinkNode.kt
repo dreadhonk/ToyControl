@@ -4,6 +4,7 @@ class SinkNode(nInputs: Int): Node {
     override val inputs = FloatArray(nInputs)
     override val outputs = FloatArray(0)
     override var invalidated = false
+    override val hasSideEffects = true
 
     public var updateCalled = false
 

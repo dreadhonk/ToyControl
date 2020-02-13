@@ -8,6 +8,7 @@ class EnvelopeNode(
 ): Node {
     override val inputs = FloatArray(nIO)
     override val outputs = FloatArray(nIO) { init }
+    override val hasSideEffects = false
 
     override var invalidated: Boolean = true
 

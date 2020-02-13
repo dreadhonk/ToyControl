@@ -14,6 +14,8 @@ interface Node {
 
     var invalidated: Boolean
 
+    val hasSideEffects: Boolean
+
     /**
      * @brief Update the nodes state.
      *

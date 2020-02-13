@@ -15,6 +15,7 @@ class ShakeIntensityNode: Node {
 
     override val inputs = magnitude.inputs
     override val outputs = rate.outputs
+    override val hasSideEffects = false
 
     override fun update(): Long {
         // TODO: this needs scaling; when used with the TYPE_LINEAR_ACCELERATION sensor, this will

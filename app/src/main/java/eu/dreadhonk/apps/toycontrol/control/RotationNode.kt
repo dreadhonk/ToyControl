@@ -6,6 +6,7 @@ class RotationNode: Node {
     override var invalidated: Boolean = false
     override val inputs = FloatArray(3)
     override val outputs = floatArrayOf(0.0f, 0.0f, 0.0f)
+    override val hasSideEffects = false
 
     companion object {
         private const val scaling = Math.PI.toFloat()

@@ -14,6 +14,7 @@ class RateLimitNode(
     override val inputs = FloatArray(nIO)
     private val buffer = FloatArray(nIO) { init }
     override val outputs = FloatArray(nIO)
+    override val hasSideEffects = false
 
     private var m_hadUpdate: Boolean = false
     private var m_lastUpdate: Long = 0

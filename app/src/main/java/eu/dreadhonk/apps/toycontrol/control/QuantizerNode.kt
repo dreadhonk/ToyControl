@@ -8,6 +8,7 @@ class QuantizerNode(stepCounta: Int = 2): Node {
     override var invalidated: Boolean = true
     override val inputs: FloatArray = floatArrayOf(0.0f)
     override val outputs: FloatArray = floatArrayOf(0.0f)
+    override val hasSideEffects = false
 
     private var m_stepCount: Int = 2
     private var m_deadZone: Float = 0.0f
