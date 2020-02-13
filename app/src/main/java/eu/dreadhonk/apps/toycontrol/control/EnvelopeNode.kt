@@ -23,6 +23,6 @@ class EnvelopeNode(
             }
         }
         invalidated = false
-        return ToyController.UPDATE_IMMEDIATELY
+        return ToyController.RESULT_UPDATED
     }
 }

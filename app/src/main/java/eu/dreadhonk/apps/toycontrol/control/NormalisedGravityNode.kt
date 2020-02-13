@@ -1,8 +1,5 @@
 package eu.dreadhonk.apps.toycontrol.control
 
-import kotlin.math.max
-import kotlin.math.min
-
 class NormalisedGravityNode(private val lengthCutoff: Float = 0.0001f): GravityNode() {
     override var invalidated: Boolean = false
     override val outputs: FloatArray = floatArrayOf(0.0f, 0.0f, 0.0f)
@@ -13,7 +10,7 @@ class NormalisedGravityNode(private val lengthCutoff: Float = 0.0001f): GravityN
             outputs[i] = MathUtil.clampNorm(outputs[i])
         }
         invalidated = false
-        return ToyController.UPDATE_IMMEDIATELY
+        return ToyController.RESULT_UPDATED
     }
 
 }

@@ -25,8 +25,8 @@ class ToyController(private val sensors: SensorManager,
     private var toy = ToyNode(1) { setToy(it) }
 
     companion object {
-        public const val UPDATE_ON_INPUT_CHANGE = -1L;
-        public const val UPDATE_IMMEDIATELY = 0L;
+        public const val REQUIRES_INPUT_CHANGE = -1L;
+        public const val RESULT_UPDATED = 0L;
     }
 
     private class Worker(private val updateFun: ()->Long): Thread() {

@@ -10,6 +10,6 @@ class SinkNode(nInputs: Int): Node {
 
     override fun update(): Long {
         updateCalled = true
-        return ToyController.UPDATE_ON_INPUT_CHANGE
+        return ToyController.REQUIRES_INPUT_CHANGE
     }
 }

@@ -62,9 +62,9 @@ class QuantizerNode(stepCounta: Int = 2): Node {
                 threshold
             )) */
             if (quantizedInput > m_qinput && inputs[0] < threshold) {
-                return ToyController.UPDATE_ON_INPUT_CHANGE
+                return ToyController.REQUIRES_INPUT_CHANGE
             } else if (quantizedInput < m_qinput && inputs[0] > threshold) {
-                return ToyController.UPDATE_ON_INPUT_CHANGE
+                return ToyController.REQUIRES_INPUT_CHANGE
             }
         }
 
@@ -73,9 +73,9 @@ class QuantizerNode(stepCounta: Int = 2): Node {
         val quantizedOutput = quantizedInput.toFloat() / divider
         outputs[0] = quantizedOutput
         if (changed) {
-            return ToyController.UPDATE_IMMEDIATELY
+            return ToyController.RESULT_UPDATED
         } else {
-            return ToyController.UPDATE_ON_INPUT_CHANGE
+            return ToyController.REQUIRES_INPUT_CHANGE
         }
     }
 }

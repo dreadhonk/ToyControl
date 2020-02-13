@@ -20,26 +20,26 @@ class EnvelopeNodeTest {
     @Test
     fun attackTest() {
         floatArrayOf(1.0f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.95f, node.outputs[0])
 
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.995f, node.outputs[0])
 
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.9995f, node.outputs[0])
     }
 
     @Test
     fun decayTest() {
         floatArrayOf(0.0f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.25f, node.outputs[0])
 
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.125f, node.outputs[0])
 
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.0625f, node.outputs[0])
     }
 
@@ -49,23 +49,23 @@ class EnvelopeNodeTest {
         node.outputs[0] = 0.0f
 
         floatArrayOf(1.0f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.9f, node.outputs[0])
 
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.99f, node.outputs[0])
 
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.999f, node.outputs[0])
 
         floatArrayOf(0.0f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.4995f, node.outputs[0])
 
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.24975f, node.outputs[0])
 
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.124875f, node.outputs[0])
     }
 }

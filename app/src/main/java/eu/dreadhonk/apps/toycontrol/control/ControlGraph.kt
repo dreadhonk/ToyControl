@@ -299,7 +299,7 @@ class ControlGraph {
 
     public fun update(): Long {
         Log.v("ControlGraph", "new run")
-        var minDelay = ToyController.UPDATE_ON_INPUT_CHANGE
+        var minDelay = ToyController.REQUIRES_INPUT_CHANGE
 
         if (topologyInvalidated) {
             updateTopology()
@@ -327,10 +327,10 @@ class ControlGraph {
             if (updated || inNode.invalidated) {
                 val delay = inNode.update()
                 Log.v("ControlGraph", String.format("%s node: returned %d", inNode.javaClass.simpleName, delay))
-                if (delay == ToyController.UPDATE_IMMEDIATELY) {
+                if (delay == ToyController.RESULT_UPDATED) {
                     dirtyFlags.put(inNode, true)
-                } else if (delay > ToyController.UPDATE_IMMEDIATELY) {
-                    if (minDelay == ToyController.UPDATE_ON_INPUT_CHANGE || minDelay > delay) {
+                } else if (delay > ToyController.RESULT_UPDATED) {
+                    if (minDelay == ToyController.REQUIRES_INPUT_CHANGE || minDelay > delay) {
                         minDelay = delay
                     }
                 }

@@ -29,26 +29,26 @@ class MagnitudeNodeTest {
     @Test
     fun oneTest() {
         floatArrayOf(1.0f, 0.0f, 0.0f, 0.0f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(1.0f, node.outputs[0])
 
         floatArrayOf(0.0f, 0.7071067811865476f, 0.7071067811865476f, 0.0f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(1.0f, node.outputs[0], 0.000001f)
 
         floatArrayOf(0.5773502691896257f, 0.5773502691896257f, 0.5773502691896257f, 0.0f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(1.0f, node.outputs[0], 0.000001f)
 
         floatArrayOf(0.5f, 0.5f, 0.5f, 0.5f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(1.0f, node.outputs[0], 0.000001f)
     }
 
     @Test
     fun zeroTest() {
         floatArrayOf(0.0f, 0.0f, 0.0f, 0.0f).copyInto(node.inputs)
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.0f, node.outputs[0])
     }
 }

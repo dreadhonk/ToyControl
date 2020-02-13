@@ -9,6 +9,6 @@ class ToyNode(nInputs: Int, private val callback: (FloatArray) -> Unit): Node {
     override fun update(): Long {
         invalidated = false
         callback(inputs)
-        return ToyController.UPDATE_ON_INPUT_CHANGE
+        return ToyController.REQUIRES_INPUT_CHANGE
     }
 }

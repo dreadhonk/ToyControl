@@ -11,6 +11,6 @@ class MagnitudeNode(
     override fun update(): Long {
         outputs[0] = MathUtil.length(inputs)
         invalidated = false
-        return ToyController.UPDATE_IMMEDIATELY
+        return ToyController.RESULT_UPDATED
     }
 }

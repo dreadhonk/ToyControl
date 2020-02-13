@@ -48,6 +48,6 @@ class RateLimitNode(
         // even if no input change has happened
         invalidated = constantRate
 
-        return ToyController.UPDATE_IMMEDIATELY
+        return ToyController.RESULT_UPDATED
     }
 }

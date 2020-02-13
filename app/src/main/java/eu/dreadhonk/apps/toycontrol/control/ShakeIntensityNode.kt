@@ -23,7 +23,7 @@ class ShakeIntensityNode: Node {
         // flow.
         inputs.copyInto(magnitude.inputs)
         val result = magnitude.update()
-        if (result == ToyController.UPDATE_ON_INPUT_CHANGE) {
+        if (result == ToyController.REQUIRES_INPUT_CHANGE) {
             return result
         }
 

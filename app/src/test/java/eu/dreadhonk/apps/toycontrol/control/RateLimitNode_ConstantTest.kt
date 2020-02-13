@@ -19,7 +19,7 @@ class RateLimitNode_ConstantTest: RateLimitNodeTest() {
     @Test
     fun gateMultipleUpdatesTest() {
         node.inputs[0] = 1.0f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(1.0f, node.outputs[0])
         assertTrue(node.invalidated)
 
@@ -37,7 +37,7 @@ class RateLimitNode_ConstantTest: RateLimitNodeTest() {
 
         advanceTime(1)
         node.inputs[0] = 0.5f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.5f, node.outputs[0])
         assertTrue(node.invalidated)
     }
@@ -45,13 +45,13 @@ class RateLimitNode_ConstantTest: RateLimitNodeTest() {
     @Test
     fun passUpdatesWithEnoughDistanceTest() {
         node.inputs[0] = 1.0f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(1.0f, node.outputs[0])
         assertTrue(node.invalidated)
 
         advanceTime(500)
         node.inputs[0] = 0.5f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.5f, node.outputs[0])
         assertTrue(node.invalidated)
     }
@@ -63,7 +63,7 @@ class RateLimitNode_ConstantTest: RateLimitNodeTest() {
         }
 
         node.inputs[0] = 0.0f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.0f, node.outputs[0])
 
         advanceTime(1)
@@ -83,7 +83,7 @@ class RateLimitNode_ConstantTest: RateLimitNodeTest() {
 
         advanceTime(250)
         node.inputs[0] = 4.0f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(10.0f, node.outputs[0])
     }
 
@@ -94,7 +94,7 @@ class RateLimitNode_ConstantTest: RateLimitNodeTest() {
         }
 
         node.inputs[0] = 0.0f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(0.0f, node.outputs[0])
 
         advanceTime(1)
@@ -104,7 +104,7 @@ class RateLimitNode_ConstantTest: RateLimitNodeTest() {
 
         advanceTime(250)
         node.inputs[0] = 4.0f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(5.0f, node.outputs[0])
 
         advanceTime(1)
@@ -114,7 +114,7 @@ class RateLimitNode_ConstantTest: RateLimitNodeTest() {
 
         advanceTime(250)
         node.inputs[0] = 1.0f
-        assertEquals(ToyController.UPDATE_IMMEDIATELY, node.update())
+        assertEquals(ToyController.RESULT_UPDATED, node.update())
         assertEquals(3.0f, node.outputs[0])
     }
 }
