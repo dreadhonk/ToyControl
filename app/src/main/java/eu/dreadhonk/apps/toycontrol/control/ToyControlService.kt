@@ -55,17 +55,26 @@ class ToyControlService : Service() {
         }
 
         override fun deviceOnline(provider: Provider, device: DeviceWithIO) {
-            Log.i("ToyControlService", "Device came online: ${device.device.displayName} (at ${provider.displayName})")
+            val deviceId = device.device.providerDeviceId
+            val providerUri = provider.uri!!
+            controller.addDevice(device) {
+                val provider = deviceManager.getProviderByUri(providerUri)!!
+                provider.setMotors(deviceId, it)
+            }
         }
     }
 
-    class ScopedConnection(
-        private val context: Context,
-        private val lifecycle: Lifecycle
-    ): LifecycleObserver {
-        private var mService: ToyControlService? = null
+    public interface DeviceEventListener {
+        fun deviceOnline(provider: Provider, device: DeviceWithIO)
+        fun deviceOffline(provider: Provider, device: Device)
+        fun deviceDeleted(provider: Provider, device: Device)
+    }
 
-        private val connection = object : ServiceConnection {
+    open class Connection(
+        private val context: Context
+    ) {
+        private var mService: ToyControlService? = null
+        private val mConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName, service: IBinder) {
                 mService = (service as Binder).connect()
             }
@@ -77,10 +86,6 @@ class ToyControlService : Service() {
 
         public val service: ToyControlService
             get() {
-                if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                    throw IllegalStateException("attempt to use service while not started")
-                }
-
                 val currService = mService
                 if (currService == null) {
                     throw IllegalStateException("not connected to service")
@@ -94,18 +99,42 @@ class ToyControlService : Service() {
                 return mService != null
             }
 
+        fun connect() {
+            if (mService != null) {
+                return
+            }
+            Intent(context, ToyControlService::class.java).also { intent ->
+                context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+            }
+        }
+
+        fun disconnect() {
+            context.unbindService(mConnection)
+            mService = null
+        }
+    }
+
+    class ScopedConnection(
+        private val context: Context,
+        private val lifecycle: Lifecycle
+    ): LifecycleObserver, Connection(context) {
+        init {
+            lifecycle.addObserver(this)
+        }
+
         @OnLifecycleEvent(Lifecycle.Event.ON_START)
         fun onStart() {
-            Intent(context, ToyControlService::class.java).also { intent ->
-                context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
-            }
+            connect()
         }
 
         @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
         fun onStop() {
-            context.unbindService(connection)
-            mService = null
+            disconnect()
         }
+    }
+
+    fun getDevices(): Iterable<DeviceWithIO> {
+        return database.devices().getAllWithIO()
     }
 
     class Binder(service: ToyControlService): android.os.Binder() {
@@ -179,4 +208,15 @@ class ToyControlService : Service() {
     fun connect() {
         client.connect()
     }
+
+    fun setSimpleControlMode(device: Device, motor: Int, mode: SimpleControlMode) {
+        controller.enableSimpleControl()
+        controller.setSimpleControlMode(device, motor, mode)
+    }
+
+    fun setManualInputValue(deviceId: Long, motor: Int, value: Float) {
+        controller.setManualInput(deviceId, motor, value)
+    }
+
+
 }

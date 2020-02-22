@@ -30,12 +30,16 @@ class DeviceManager(database: DeviceDatabase) {
     }
 
     private val ownListener = ProviderListener()
-    private val m_providers = ArrayList<DeviceProvider>()
+    private val mProviders = HashMap<String, DeviceProvider>()
 
     public val providers: List<DeviceProvider>
         get() {
-            return m_providers
+            return mProviders.values.asSequence().toList()
         }
+
+    public fun getProviderByUri(uri: String): DeviceProvider? {
+        return mProviders[uri]
+    }
 
     private fun handleDeviceOnline(provider: DeviceProvider, device: DeviceInfo) {
         val localProvider = database.providers().getByURI(provider.uri)!!
@@ -70,7 +74,7 @@ class DeviceManager(database: DeviceDatabase) {
     }
 
     fun registerProvider(provider: DeviceProvider, defaultDisplayName: String? = null) {
-        m_providers.add(provider)
+        mProviders[provider.uri] = provider
         database.runInTransaction {
             val dao = database.providers()
             val provider = dao.requireProvider(provider.uri)
@@ -89,7 +93,7 @@ class DeviceManager(database: DeviceDatabase) {
 
     fun deleteProvider(provider: DeviceProvider) {
         val listener = this.listener
-        if (m_providers.remove(provider)) {
+        if (mProviders.remove(provider.uri) != null) {
             val dao = database.providers()
             var localProvider: Provider
             if (listener != null) {

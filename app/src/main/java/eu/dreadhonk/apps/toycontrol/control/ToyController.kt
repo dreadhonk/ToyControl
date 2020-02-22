@@ -9,6 +9,8 @@ import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.*
+import eu.dreadhonk.apps.toycontrol.data.Device
+import eu.dreadhonk.apps.toycontrol.data.DeviceWithIO
 import eu.dreadhonk.apps.toycontrol.devices.DeviceManager
 import org.metafetish.buttplug.core.Messages.SingleMotorVibrateCmd
 import java.util.*
@@ -20,10 +22,8 @@ class ToyController(private val sensors: SensorManager,
                     private val context: Context,
                     private val devices: DeviceManager): SensorEventListener, LifecycleOwner {
 
-    private var gravityNode = NormalisedGravityNode()
-    private var quantiser = QuantizerNode(20)
-    private var rateLimiter = RateLimitNode(250, 1)
-    private var toy = ToyNode(1) { setToy(it) }
+    private val outputNodes = HashMap<Long, Node>();
+    private val manualInputNodes = HashMap<Long, PassthroughNode>();
 
     companion object {
         public const val REQUIRES_INPUT_CHANGE = -1L;
@@ -145,16 +145,6 @@ class ToyController(private val sensors: SensorManager,
     private lateinit var sensorRegistration: SensorRegistration
 
     init {
-        quantiser.deadZone = 0.1f
-
-        graph.addNode(gravityNode)
-        graph.addNode(quantiser)
-        graph.addNode(rateLimiter)
-        graph.addNode(toy)
-
-        graph.link(gravityNode, 2, quantiser, 0)
-        graph.link(quantiser, 0, rateLimiter, 0)
-        graph.link(rateLimiter, 0, toy, 0)
     }
 
     fun start() {
@@ -171,7 +161,7 @@ class ToyController(private val sensors: SensorManager,
             sensors,
             SensorManager.SENSOR_DELAY_UI
         )
-        sensorRegistration.shouldBeEnabled = graph.isNodeUsed(gravityNode)
+        sensorRegistration.shouldBeEnabled = false
         lifecycleRegistry.addObserver(sensorRegistration)
 
         lifecycleRegistry.setCurrentState(Lifecycle.State.STARTED)
@@ -206,13 +196,67 @@ class ToyController(private val sensors: SensorManager,
 
     override fun onSensorChanged(event: SensorEvent) {
         val values = event.values
-        worker.post {
-            values.copyInto(gravityNode.inputs)
-            gravityNode.invalidated = true
-        }
     }
 
     override fun getLifecycle(): Lifecycle {
         return lifecycleRegistry
+    }
+
+    fun enableSimpleControl() {
+        // Default
+    }
+
+    fun setSimpleControlMode(device: Device, motor: Int, mode: SimpleControlMode) {
+
+    }
+
+    fun addDevice(device: DeviceWithIO, updateCallback: (FloatArray) -> Unit) {
+        worker.post {
+            val nIO = device.motors.size
+            if (!outputNodes.containsKey(device.device.id)) {
+                val toyNode = ToyNode(nIO) {
+                    updateCallback(it)
+                }
+                val rateLimiter = RateLimitNode(100, nIO)
+                val outputNode = PassthroughNode(nIO)
+
+                graph.addNode(outputNode)
+                graph.addNode(rateLimiter)
+                graph.addNode(toyNode)
+
+                Array<QuantizerNode>(nIO) { i ->
+                    val motor = device.motors[i]
+                    val q = QuantizerNode(motor.steps.toInt())
+                    graph.addNode(q)
+                    graph.link(outputNode, i, q, 0)
+                    graph.link(q, 0, rateLimiter, i)
+                    graph.link(rateLimiter, i, toyNode, i)
+                    q
+                }
+
+                outputNodes[device.device.id] = outputNode
+            }
+
+            if (!manualInputNodes.containsKey(device.device.id)) {
+                val node = PassthroughNode(nIO)
+                manualInputNodes[device.device.id] = node
+                graph.addNode(node)
+            }
+
+            val manualInput = manualInputNodes[device.device.id]!!
+            val output = outputNodes[device.device.id]!!
+
+            for (i in 0 until nIO) {
+                graph.link(manualInput, i, output, i)
+            }
+        }
+    }
+
+    fun setManualInput(deviceId: Long, motor: Int, value: Float) {
+        worker.post {
+            val node = manualInputNodes[deviceId]!!
+            node.inputs[motor] = value
+            node.invalidated = true
+        }
     }
 }

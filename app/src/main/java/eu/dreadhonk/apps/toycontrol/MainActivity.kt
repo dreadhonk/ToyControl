@@ -31,17 +31,7 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_LOCATION = 1;
     }
 
-    private val connection = object : ServiceConnection {
-        public var service: ToyControlService? = null
-
-        override fun onServiceConnected(name: ComponentName?, service_binder: IBinder?) {
-            service = (service_binder as ToyControlService.Binder)!!.getService()
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            service = null
-        }
-    }
+    private val conn = ToyControlService.ScopedConnection(this, this.lifecycle)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,18 +49,11 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
-    }
 
-    override fun onStart() {
-        super.onStart()
-        Intent(this, ToyControlService::class.java).also { intent ->
-            bindService(intent, connection, Context.BIND_AUTO_CREATE)
-        }
-    }
-
-    override fun onStop() {
-        unbindService(connection)
-        super.onStop()
+        /* val glview = SurfaceView(this)
+        findViewById<LinearLayout>(R.id.main_layout).also {
+            it.addView(glview, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        } */
     }
 
     fun connect() {
@@ -92,7 +75,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun do_connect() {
-        connection.service!!.connect()
+        conn.service.connect()
     }
 
     private fun handle_connected(client: ButtplugClient) {

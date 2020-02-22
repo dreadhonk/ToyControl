@@ -24,55 +24,10 @@
             android:textSize="36sp" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/control_layout"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <eu.dreadhonk.apps.toycontrol.ui.IntensityControl
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <eu.dreadhonk.apps.toycontrol.ui.IntensityControl
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <eu.dreadhonk.apps.toycontrol.ui.IntensityControl
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <eu.dreadhonk.apps.toycontrol.ui.IntensityControl
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <eu.dreadhonk.apps.toycontrol.ui.ValueView
-                android:id="@+id/vacc_x"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0" />
-
-            <eu.dreadhonk.apps.toycontrol.ui.ValueView
-                android:id="@+id/vacc_y"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0" />
-
-            <eu.dreadhonk.apps.toycontrol.ui.ValueView
-                android:id="@+id/vacc_z"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0" />
-
-            <eu.dreadhonk.apps.toycontrol.ui.ValueView
-                android:id="@+id/vplay"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0" />
-
-        </LinearLayout>
+            android:orientation="horizontal" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

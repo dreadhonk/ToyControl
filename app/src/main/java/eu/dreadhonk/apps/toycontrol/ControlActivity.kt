@@ -1,112 +1,107 @@
 package eu.dreadhonk.apps.toycontrol
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
+import android.widget.LinearLayout
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
 import eu.dreadhonk.apps.toycontrol.control.MathUtil
+import eu.dreadhonk.apps.toycontrol.control.SimpleControlMode
 import eu.dreadhonk.apps.toycontrol.control.ToyControlService
+import eu.dreadhonk.apps.toycontrol.data.Device
+import eu.dreadhonk.apps.toycontrol.data.DeviceWithIO
+import eu.dreadhonk.apps.toycontrol.ui.IntensityControl
 import eu.dreadhonk.apps.toycontrol.ui.ValueView
+import java.util.concurrent.Executors
 
-class ControlActivity : AppCompatActivity(), SensorEventListener {
+class ControlActivity : AppCompatActivity() {
+    private val controls = ArrayList<IntensityControl>()
+    private lateinit var targetLayout: LinearLayout
+    private var mService: ToyControlService? = null
 
-    private var xValueView: ValueView? = null
-    private var yValueView: ValueView? = null
-    private var zValueView: ValueView? = null
-    private var playValueView: ValueView? = null
+    private val mConnection = object: ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val remoteService = (service as ToyControlService.Binder).connect()
+            mService = remoteService
+            Executors.newSingleThreadExecutor().execute {
+                val devices = remoteService.getDevices()
+                runOnUiThread {
+                    refreshDevices(devices)
+                }
+            }
+        }
 
-    private var accum: Float = 0.0f
-    private val accumDecay: Float = 0.95f
-
-    private lateinit var sensors: SensorManager
-    private lateinit var plainAccel: Sensor
-    private lateinit var gravity: Sensor
-    private lateinit var linearAccel: Sensor
-
-    private val conn = ToyControlService.ScopedConnection(this, this.lifecycle)
+        override fun onServiceDisconnected(name: ComponentName?) {
+            mService = null
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control)
+        targetLayout = findViewById<LinearLayout>(R.id.control_layout)
+    }
 
-        xValueView = findViewById<ValueView>(R.id.vacc_x).also {
-            it.showSubValueA = true
-            it.showSubValueB = true
-        }
-        yValueView = findViewById<ValueView>(R.id.vacc_y).also {
-            it.showSubValueA = true
-            it.showSubValueB = true
-        }
-        zValueView = findViewById<ValueView>(R.id.vacc_z).also {
-            it.showSubValueA = true
-            it.showSubValueB = true
-        }
-        playValueView = findViewById<ValueView>(R.id.vplay).also {
-            it.minimumValue = 0.0f
-            it.maximumValue = 25.0f
+    private class EventForwarder(
+        private val service: ToyControlService,
+        private val deviceId: Long,
+        private val motor: Int
+    ): IntensityControl.IntensityControlListener {
+
+        override fun onManualValueChange(newValue: Float) {
+            service.setManualInputValue(deviceId, motor, newValue)
         }
 
-        sensors = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        plainAccel = sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!!
-        gravity = sensors.getDefaultSensor(Sensor.TYPE_GRAVITY)!!
-        linearAccel = sensors.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)!!
+        override fun onModeChange(newMode: SimpleControlMode) {
+
+        }
+    }
+
+    private fun refreshDevices(devices: Iterable<DeviceWithIO>) {
+        targetLayout.removeAllViews()
+        controls.clear()
+
+        for (device in devices) {
+            for (output in 0 until device.motors.size) {
+                val newControl = IntensityControl(this)
+                newControl.deviceName = device.device.displayName
+                newControl.devicePort = "M${output}"
+                newControl.listener = EventForwarder(mService!!, device.device.id, output)
+                controls.add(newControl)
+                targetLayout.addView(
+                    newControl,
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        1.0f
+                    )
+                )
+            }
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        Log.d("ControlActivity", "onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("ControlActivity", "onResume")
-        sensors.registerListener(this, plainAccel, SensorManager.SENSOR_DELAY_UI)
-        sensors.registerListener(this, gravity, SensorManager.SENSOR_DELAY_UI)
-        sensors.registerListener(this, linearAccel, SensorManager.SENSOR_DELAY_UI)
+        Intent(this, ToyControlService::class.java).also { intent ->
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+        }
     }
 
     override fun onStop() {
-        sensors.unregisterListener(this)
+        targetLayout.removeAllViews()
+        controls.clear()
+        unbindService(mConnection)
         super.onStop()
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-    }
-
-    override fun onSensorChanged(event: SensorEvent) {
-        when (event.sensor) {
-        plainAccel -> {
-            val normVec = MathUtil.normalise(event.values)
-            xValueView!!.currentValue = normVec[0]
-            yValueView!!.currentValue = normVec[1]
-            zValueView!!.currentValue = normVec[2]
-        }
-        linearAccel -> {
-            val factor = 1.0f / 40.0f
-            val length = MathUtil.length(event.values)
-            val normVec = floatArrayOf(
-                event.values[0] * factor,
-                event.values[1] * factor,
-                event.values[2] * factor
-            )
-            xValueView!!.subValueA = normVec[0]
-            yValueView!!.subValueA = normVec[1]
-            zValueView!!.subValueA = normVec[2]
-
-            accum = Math.max(length, accum * accumDecay)
-            playValueView!!.currentValue = accum
-        }
-        gravity -> {
-            val normVec = MathUtil.normalise(event.values)
-            xValueView!!.subValueB = normVec[0]
-            yValueView!!.subValueB = normVec[1]
-            zValueView!!.subValueB = normVec[2]
-        }
-        else -> null;
-        }
     }
 }

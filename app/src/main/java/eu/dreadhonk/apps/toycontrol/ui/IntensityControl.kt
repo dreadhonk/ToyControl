@@ -33,7 +33,7 @@ class IntensityControl: LinearLayout {
     private lateinit var mDeviceLabel: TextView
     private lateinit var mDevicePort: TextView
 
-    private var mListener: IntensityControlListener? = null
+    public var listener: IntensityControlListener? = null
 
     private data class ControlModeItem(
         val label: String,
@@ -102,7 +102,7 @@ class IntensityControl: LinearLayout {
 
     private val mEventForwarder = object: IntensitySliderView.OnValueChangeListener {
         override fun onValueChange(newValue: Float) {
-            val fwdTo = mListener
+            val fwdTo = listener
             if (fwdTo == null) {
                 return
             }
@@ -112,7 +112,7 @@ class IntensityControl: LinearLayout {
 
     private val mItemSelectedListener = object: AdapterView.OnItemSelectedListener {
         override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
-            val fwdTo = mListener
+            val fwdTo = listener
             if (fwdTo == null) {
                 return
             }
@@ -126,6 +126,22 @@ class IntensityControl: LinearLayout {
     }
 
     private lateinit var adapter: ControlModeAdapter
+
+    public var deviceName: CharSequence
+        get() {
+            return mDeviceLabel.text
+        }
+        set(v: CharSequence) {
+            mDeviceLabel.text = v
+        }
+
+    public var devicePort: CharSequence
+        get() {
+            return mDevicePort.text
+        }
+        set(v: CharSequence) {
+            mDevicePort.text = v
+        }
 
     private fun init(attrs: AttributeSet?, defStyle: Int) {
         orientation = LinearLayout.VERTICAL

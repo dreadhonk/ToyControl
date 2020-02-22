@@ -8,8 +8,6 @@ class DebugDeviceProvider: DeviceProvider {
         providerDeviceId=1,
         motors=arrayOf(
             MotorInfo(steps=20),
-            MotorInfo(steps=20),
-            MotorInfo(steps=20),
             MotorInfo(steps=20)
         )
     )
