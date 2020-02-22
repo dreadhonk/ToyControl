@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="control_simple_inputs_list">
+        <item>Manual</item>
+        <item>Gravity X axis</item>
+        <item>Gravity Y axis</item>
+        <item>Gravity Z axis</item>
+        <item>Shaking</item>
+    </string-array>
+</resources>

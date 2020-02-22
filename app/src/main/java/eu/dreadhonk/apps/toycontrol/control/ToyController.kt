@@ -8,6 +8,7 @@ import android.hardware.SensorManager
 import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
+import androidx.lifecycle.*
 import eu.dreadhonk.apps.toycontrol.devices.DeviceManager
 import org.metafetish.buttplug.core.Messages.SingleMotorVibrateCmd
 import java.util.*
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit
 
 class ToyController(private val sensors: SensorManager,
                     private val context: Context,
-                    private val devices: DeviceManager): SensorEventListener {
+                    private val devices: DeviceManager): SensorEventListener, LifecycleOwner {
 
     private var gravityNode = NormalisedGravityNode()
     private var quantiser = QuantizerNode(20)
@@ -76,6 +77,73 @@ class ToyController(private val sensors: SensorManager,
 
     private val graph = ControlGraph()
 
+    private class SensorRegistration(
+        private val listener: SensorEventListener,
+        private val lifecycle: Lifecycle,
+        private val sensor: Sensor,
+        private val sensorManager: SensorManager,
+        private val delay: Int): LifecycleObserver
+    {
+        private var _shouldBeEnabled: Boolean = true
+
+        public var shouldBeEnabled: Boolean
+            get() {
+                return _shouldBeEnabled
+            }
+            set(v: Boolean) {
+                if (v == _shouldBeEnabled) {
+                    return
+                }
+                _shouldBeEnabled = v
+                updateState()
+            }
+
+        private fun register() {
+            sensorManager.registerListener(listener, sensor, delay)
+        }
+
+        private fun unregister() {
+            sensorManager.unregisterListener(listener, sensor)
+        }
+
+        private fun updateState() {
+            Log.v("SensorRegistration", "received state update")
+            if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                Log.v("SensorRegistration", "not started -> not enabling")
+                return
+            }
+            if (_shouldBeEnabled) {
+                Log.v("SensorRegistration", "started -> enabling")
+                register()
+            } else {
+                Log.v("SensorRegistration", "started -> disabling")
+                unregister()
+            }
+        }
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_START)
+        fun onStart() {
+            Log.v("SensorRegistration", "received start event")
+            if (_shouldBeEnabled) {
+                Log.v("SensorRegistration", "start event -> registering")
+                register()
+            }
+        }
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+        fun onStop() {
+            Log.v("SensorRegistration", "received stop event")
+            if (_shouldBeEnabled) {
+                Log.v("SensorRegistration", "stop event -> unregistering")
+                unregister()
+            }
+        }
+    }
+
+    private val lifecycleRegistry = LifecycleRegistry(this)
+
+    private lateinit var sensorRegistration: SensorRegistration
+
     init {
         quantiser.deadZone = 0.1f
 
@@ -90,18 +158,29 @@ class ToyController(private val sensors: SensorManager,
     }
 
     fun start() {
+        Log.v("ToyController", "start called")
         val sensor = sensors.getDefaultSensor(Sensor.TYPE_GRAVITY)
         if (sensor == null) {
             throw RuntimeException("failed to find gravity sensor!")
         }
 
+        sensorRegistration = SensorRegistration(
+            this,
+            lifecycleRegistry,
+            sensor,
+            sensors,
+            SensorManager.SENSOR_DELAY_UI
+        )
+        sensorRegistration.shouldBeEnabled = graph.isNodeUsed(gravityNode)
+        lifecycleRegistry.addObserver(sensorRegistration)
+
+        lifecycleRegistry.setCurrentState(Lifecycle.State.STARTED)
         worker.start()
-        sensors.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     fun stop() {
-        sensors.unregisterListener(this)
         worker.interrupt()
+        lifecycleRegistry.setCurrentState(Lifecycle.State.CREATED)
     }
 
     private fun setToy(values: FloatArray) {
@@ -131,5 +210,9 @@ class ToyController(private val sensors: SensorManager,
             values.copyInto(gravityNode.inputs)
             gravityNode.invalidated = true
         }
+    }
+
+    override fun getLifecycle(): Lifecycle {
+        return lifecycleRegistry
     }
 }

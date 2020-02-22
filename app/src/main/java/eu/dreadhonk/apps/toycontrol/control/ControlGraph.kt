@@ -339,4 +339,8 @@ class ControlGraph {
 
         return minDelay
     }
+
+    public fun isNodeUsed(node: Node): Boolean {
+        return sortedNodes.contains(node)
+    }
 }

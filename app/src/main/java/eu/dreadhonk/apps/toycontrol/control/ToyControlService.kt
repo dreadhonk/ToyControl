@@ -5,13 +5,18 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.bluetooth.BluetoothClass
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
 import androidx.room.Room
 import eu.dreadhonk.apps.toycontrol.MainActivity
 import eu.dreadhonk.apps.toycontrol.R
@@ -26,6 +31,7 @@ import org.metafetish.buttplug.client.ButtplugEmbeddedClient
 import org.metafetish.buttplug.core.ButtplugEvent
 import org.metafetish.buttplug.core.Messages.DeviceAdded
 import org.metafetish.buttplug.core.Messages.DeviceRemoved
+import java.lang.IllegalStateException
 import java.util.concurrent.Executors
 
 class ToyControlService : Service() {
@@ -53,10 +59,59 @@ class ToyControlService : Service() {
         }
     }
 
+    class ScopedConnection(
+        private val context: Context,
+        private val lifecycle: Lifecycle
+    ): LifecycleObserver {
+        private var mService: ToyControlService? = null
+
+        private val connection = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName, service: IBinder) {
+                mService = (service as Binder).connect()
+            }
+
+            override fun onServiceDisconnected(name: ComponentName) {
+                mService = null
+            }
+        }
+
+        public val service: ToyControlService
+            get() {
+                if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    throw IllegalStateException("attempt to use service while not started")
+                }
+
+                val currService = mService
+                if (currService == null) {
+                    throw IllegalStateException("not connected to service")
+                }
+
+                return currService
+            }
+
+        public val isConnected: Boolean
+            get() {
+                return mService != null
+            }
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_START)
+        fun onStart() {
+            Intent(context, ToyControlService::class.java).also { intent ->
+                context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            }
+        }
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+        fun onStop() {
+            context.unbindService(connection)
+            mService = null
+        }
+    }
+
     class Binder(service: ToyControlService): android.os.Binder() {
         private val service = service
 
-        fun getService(): ToyControlService {
+        fun connect(): ToyControlService {
             return service
         }
     }

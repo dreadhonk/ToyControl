@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import eu.dreadhonk.apps.toycontrol.control.MathUtil
+import eu.dreadhonk.apps.toycontrol.control.ToyControlService
 import eu.dreadhonk.apps.toycontrol.ui.ValueView
 
 class ControlActivity : AppCompatActivity(), SensorEventListener {
@@ -25,6 +26,8 @@ class ControlActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var plainAccel: Sensor
     private lateinit var gravity: Sensor
     private lateinit var linearAccel: Sensor
+
+    private val conn = ToyControlService.ScopedConnection(this, this.lifecycle)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

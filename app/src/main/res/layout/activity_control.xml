@@ -28,44 +28,50 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/textView4"
+            <eu.dreadhonk.apps.toycontrol.ui.IntensityControl
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <eu.dreadhonk.apps.toycontrol.ui.IntensityControl
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <eu.dreadhonk.apps.toycontrol.ui.IntensityControl
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <eu.dreadhonk.apps.toycontrol.ui.IntensityControl
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <eu.dreadhonk.apps.toycontrol.ui.ValueView
+                android:id="@+id/vacc_x"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Input controls will go here"
-                android:textSize="30sp" />
+                android:layout_weight="0" />
 
-            <LinearLayout
+            <eu.dreadhonk.apps.toycontrol.ui.ValueView
+                android:id="@+id/vacc_y"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                tools:layout_editor_absoluteX="161dp"
-                tools:layout_editor_absoluteY="1dp">
+                android:layout_height="wrap_content"
+                android:layout_weight="0" />
 
-                <eu.dreadhonk.apps.toycontrol.ui.ValueView
-                    android:id="@+id/vacc_x"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+            <eu.dreadhonk.apps.toycontrol.ui.ValueView
+                android:id="@+id/vacc_z"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0" />
 
-                <eu.dreadhonk.apps.toycontrol.ui.ValueView
-                    android:id="@+id/vacc_y"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+            <eu.dreadhonk.apps.toycontrol.ui.ValueView
+                android:id="@+id/vplay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0" />
 
-                <eu.dreadhonk.apps.toycontrol.ui.ValueView
-                    android:id="@+id/vacc_z"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <eu.dreadhonk.apps.toycontrol.ui.ValueView
-                    android:id="@+id/vplay"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
