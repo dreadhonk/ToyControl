@@ -32,11 +32,14 @@ class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {
 
     override fun initiateScan() {
         if (state.compareAndSet(STATE_DISCONNECTED, STATE_SCAN_QUEUED)) {
+            Log.i("ButtplugDeviceProvider", "not connected. queueing scan request.")
             return
         }
         if (state.compareAndSet(STATE_SCAN_QUEUED, STATE_SCAN_QUEUED)) {
+            Log.i("ButtplugDeviceProvider", "not connected. queueing scan request.")
             return
         }
+        Log.i("ButtplugDeviceProvider", "not connected. queueing scan request.")
         client.startScanning()
     }
 
@@ -60,6 +63,7 @@ class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {
         if (!state.compareAndSet(STATE_DISCONNECTED, STATE_CONNECTED)) {
             // previous state was not DISCONNECTED
             if (state.compareAndSet(STATE_SCAN_QUEUED, STATE_CONNECTED)) {
+                Log.i("ButtplugDeviceProvider", "initiating queued scan")
                 client.startScanning()
             } else {
                 throw RuntimeException("unexpected state: ${state.get()}")

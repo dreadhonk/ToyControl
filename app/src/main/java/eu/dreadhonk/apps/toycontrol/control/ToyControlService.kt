@@ -209,6 +209,12 @@ class ToyControlService : Service() {
         client.connect()
     }
 
+    fun scan() {
+        for (provider in deviceManager.providers) {
+            provider.initiateScan()
+        }
+    }
+
     fun setSimpleControlMode(deviceId: Long, motor: Int, mode: SimpleControlMode) {
         controller.enableSimpleControl()
         controller.setSimpleControlMode(deviceId, motor, mode)

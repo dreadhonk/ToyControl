@@ -43,6 +43,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        findViewById<Button>(R.id.btn_scan).also {
+            it.setOnClickListener {
+                scan()
+            }
+        }
+
         findViewById<Button>(R.id.btn_control).also {
             it.setOnClickListener {
                 val intent = Intent(this, ControlActivity::class.java)
@@ -72,6 +78,10 @@ class MainActivity : AppCompatActivity() {
         }
         Log.d("MainActivity", "fine location access granted -> proceeding with connection")
         do_connect()
+    }
+
+    fun scan() {
+        conn.service.scan()
     }
 
     private fun do_connect() {
