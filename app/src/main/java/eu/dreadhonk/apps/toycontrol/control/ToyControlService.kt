@@ -206,7 +206,11 @@ class ToyControlService : Service() {
     }
 
     fun connect() {
-        client.connect()
+        try {
+            client.connect()
+        } catch (e: IllegalStateException) {
+            Log.i("ToyControlService", "failed to connect: ${e}. ignoring.")
+        }
     }
 
     fun scan() {
