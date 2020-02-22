@@ -209,9 +209,9 @@ class ToyControlService : Service() {
         client.connect()
     }
 
-    fun setSimpleControlMode(device: Device, motor: Int, mode: SimpleControlMode) {
+    fun setSimpleControlMode(deviceId: Long, motor: Int, mode: SimpleControlMode) {
         controller.enableSimpleControl()
-        controller.setSimpleControlMode(device, motor, mode)
+        controller.setSimpleControlMode(deviceId, motor, mode)
     }
 
     fun setManualInputValue(deviceId: Long, motor: Int, value: Float) {

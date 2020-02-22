@@ -14,7 +14,7 @@ class ShakeIntensityNode: Node {
     )
 
     override val inputs = magnitude.inputs
-    override val outputs = rate.outputs
+    override val outputs = FloatArray(1)
     override val hasSideEffects = false
 
     override fun update(): Long {
@@ -22,12 +22,17 @@ class ShakeIntensityNode: Node {
         // generally output values between 0 and 25 or so, which is out of range for the normal
         // flow.
         inputs.copyInto(magnitude.inputs)
-        val result = magnitude.update()
+        var result = magnitude.update()
         if (result == ToyController.REQUIRES_INPUT_CHANGE) {
             return result
         }
 
         magnitude.outputs.copyInto(rate.inputs)
-        return rate.update()
+        result = rate.update()
+        if (result == ToyController.REQUIRES_INPUT_CHANGE) {
+            return result
+        }
+        outputs[0] = rate.outputs[0] / 25.0f
+        return result
     }
 }

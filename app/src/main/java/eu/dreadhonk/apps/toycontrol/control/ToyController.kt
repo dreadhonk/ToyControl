@@ -7,14 +7,10 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.SystemClock
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.*
-import eu.dreadhonk.apps.toycontrol.data.Device
 import eu.dreadhonk.apps.toycontrol.data.DeviceWithIO
 import eu.dreadhonk.apps.toycontrol.devices.DeviceManager
-import org.metafetish.buttplug.core.Messages.SingleMotorVibrateCmd
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
@@ -24,6 +20,11 @@ class ToyController(private val sensors: SensorManager,
 
     private val outputNodes = HashMap<Long, Node>();
     private val manualInputNodes = HashMap<Long, PassthroughNode>();
+
+    // TODO: do normalisation in separate node
+    private val gravityNode = NormalisedGravityNode()
+    private val linearAccelNode = PassthroughNode(3)
+    private val shakeNode = ShakeIntensityNode()
 
     companion object {
         public const val REQUIRES_INPUT_CHANGE = -1L;
@@ -142,49 +143,64 @@ class ToyController(private val sensors: SensorManager,
 
     private val lifecycleRegistry = LifecycleRegistry(this)
 
-    private lateinit var sensorRegistration: SensorRegistration
+    private lateinit var gravityRegistration: SensorRegistration
+    private lateinit var linearAccelRegistration: SensorRegistration
 
     init {
+        graph.addNode(gravityNode)
+        graph.addNode(linearAccelNode)
+        graph.addNode(shakeNode)
+        graph.link(linearAccelNode, 0, shakeNode, 0)
+        graph.link(linearAccelNode, 1, shakeNode, 1)
+        graph.link(linearAccelNode, 2, shakeNode, 2)
     }
 
     fun start() {
         Log.v("ToyController", "start called")
-        val sensor = sensors.getDefaultSensor(Sensor.TYPE_GRAVITY)
-        if (sensor == null) {
+        val gravitySensor = sensors.getDefaultSensor(Sensor.TYPE_GRAVITY)
+        if (gravitySensor == null) {
             throw RuntimeException("failed to find gravity sensor!")
         }
+        val linearAccelSensor = sensors.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        if (linearAccelSensor == null) {
+            throw RuntimeException("failed to find linear acceleration sensor!")
+        }
 
-        sensorRegistration = SensorRegistration(
+        gravityRegistration = SensorRegistration(
             this,
             lifecycleRegistry,
-            sensor,
+            gravitySensor,
             sensors,
             SensorManager.SENSOR_DELAY_UI
         )
-        sensorRegistration.shouldBeEnabled = false
-        lifecycleRegistry.addObserver(sensorRegistration)
+        gravityRegistration.shouldBeEnabled = false
+        lifecycleRegistry.addObserver(gravityRegistration)
+
+        linearAccelRegistration = SensorRegistration(
+            this,
+            lifecycleRegistry,
+            linearAccelSensor,
+            sensors,
+            SensorManager.SENSOR_DELAY_UI
+        )
+        linearAccelRegistration.shouldBeEnabled = false
+        lifecycleRegistry.addObserver(linearAccelRegistration)
 
         lifecycleRegistry.setCurrentState(Lifecycle.State.STARTED)
         worker.start()
     }
 
+    private fun updateSubscriptions() {
+        val gravityUsed = graph.isNodeUsed(gravityNode)
+        val linearAccelUsed = graph.isNodeUsed(linearAccelNode)
+        Log.v("ToyController", "gravity needed = ${gravityUsed}, linear accel needed = ${linearAccelUsed}")
+        gravityRegistration.shouldBeEnabled = gravityUsed
+        linearAccelRegistration.shouldBeEnabled = linearAccelUsed
+    }
+
     fun stop() {
         worker.interrupt()
         lifecycleRegistry.setCurrentState(Lifecycle.State.CREATED)
-    }
-
-    private fun setToy(values: FloatArray) {
-        val value = values[0]
-
-        Log.i("ToyController", String.format("toy speed update to: %.2f", value))
-        for (provider in devices.providers) {
-            for (device in provider.devices()) {
-                for (motorIndex in device.motors.indices) {
-                    Log.v("ToyController", "setting motor ${motorIndex} on device ${device.displayName} from provider ${provider.uri} to ${value}")
-                    provider.setMotor(device.providerDeviceId, motorIndex, value)
-                }
-            }
-        }
     }
 
     private fun do_update(): Long {
@@ -196,6 +212,18 @@ class ToyController(private val sensors: SensorManager,
 
     override fun onSensorChanged(event: SensorEvent) {
         val values = event.values
+        val sensorType = event.sensor.type
+        worker.post {
+            val node = when (sensorType) {
+                Sensor.TYPE_LINEAR_ACCELERATION -> linearAccelNode
+                Sensor.TYPE_GRAVITY -> gravityNode
+                else -> null
+            }
+            if (node != null) {
+                values.copyInto(node.inputs)
+                node.invalidated = true
+            }
+        }
     }
 
     override fun getLifecycle(): Lifecycle {
@@ -206,8 +234,39 @@ class ToyController(private val sensors: SensorManager,
         // Default
     }
 
-    fun setSimpleControlMode(device: Device, motor: Int, mode: SimpleControlMode) {
-
+    fun setSimpleControlMode(deviceId: Long, motor: Int, mode: SimpleControlMode) {
+        worker.post {
+            val outputNode = outputNodes[deviceId]
+            if (outputNode != null) {
+                when (mode) {
+                    SimpleControlMode.MANUAL -> {
+                        val manualInputNode = manualInputNodes[deviceId]!!
+                        manualInputNode.invalidated = true
+                        graph.link(manualInputNode, motor, outputNode, motor)
+                    }
+                    SimpleControlMode.GRAVITY_X -> {
+                        gravityNode.invalidated = true
+                        graph.link(gravityNode, 0, outputNode, motor)
+                    }
+                    SimpleControlMode.GRAVITY_Y -> {
+                        gravityNode.invalidated = true
+                        graph.link(gravityNode, 1, outputNode, motor)
+                    }
+                    SimpleControlMode.GRAVITY_Z -> {
+                        gravityNode.invalidated = true
+                        graph.link(gravityNode, 2, outputNode, motor)
+                    }
+                    SimpleControlMode.SHAKE -> {
+                        shakeNode.invalidated = true
+                        graph.link(shakeNode, 0, outputNode, motor)
+                    }
+                    else -> {
+                        graph.unlinkInput(outputNode, motor)
+                    }
+                }
+                updateSubscriptions()
+            }
+        }
     }
 
     fun addDevice(device: DeviceWithIO, updateCallback: (FloatArray) -> Unit) {

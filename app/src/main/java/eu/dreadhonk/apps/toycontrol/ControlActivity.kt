@@ -64,7 +64,7 @@ class ControlActivity : AppCompatActivity() {
         }
 
         override fun onModeChange(newMode: SimpleControlMode) {
-
+            service.setSimpleControlMode(deviceId, motor, newMode)
         }
     }
 
