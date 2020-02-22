@@ -251,7 +251,7 @@ class ControlGraph {
 
     public fun unlinkInput(inputNode: Node, inputIndex: Int) {
         val inSlot = NodeInSlot(inputNode, inputIndex)
-        val source = inEdges.get(inSlot)
+        val source = inEdges.remove(inSlot)
         if (source == null) {
             return
         }
