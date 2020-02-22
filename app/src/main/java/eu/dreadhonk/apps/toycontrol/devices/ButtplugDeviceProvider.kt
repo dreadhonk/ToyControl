@@ -83,6 +83,9 @@ class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {
         }
 
         val motorInfo = Array<MotorInfo>(motorCount.toInt()) {
+            // FIXME: use the correct step count here. AFAIK, buttplug-android does not support
+            // discovering that, so we'll have to fake it in some way. or make buttplug-android
+            // read the new device json stuff.
             MotorInfo(steps=20)
         }
 
