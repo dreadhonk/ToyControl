@@ -17,7 +17,7 @@ class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {
     companion object {
         private val STATE_DISCONNECTED = 0
         private val STATE_SCAN_QUEUED = 1
-        private val STATE_CONNECTED = 1
+        private val STATE_CONNECTED = 2
     }
 
     private val client = client
