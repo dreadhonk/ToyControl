@@ -5,4 +5,5 @@
     <string name="scan">Scan</string>
     <string name="enter_control_mode">Enter Control Mode</string>
     <string name="connect">Connect</string>
+    <string name="exit">Exit and stop everything</string>
 </resources>

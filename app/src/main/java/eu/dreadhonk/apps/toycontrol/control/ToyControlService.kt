@@ -238,5 +238,8 @@ class ToyControlService : Service() {
         controller.setManualInput(deviceId, motor, value)
     }
 
-
+    fun stop() {
+        stopForeground(true)
+        stopSelf()
+    }
 }

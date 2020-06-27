@@ -56,6 +56,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        findViewById<Button>(R.id.btn_exit).also {
+            it.setOnClickListener {
+                stopAndExit()
+            }
+        }
+
         /* val glview = SurfaceView(this)
         findViewById<LinearLayout>(R.id.main_layout).also {
             it.addView(glview, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
@@ -82,6 +88,13 @@ class MainActivity : AppCompatActivity() {
 
     fun scan() {
         conn.service.scan()
+    }
+
+    fun stopAndExit() {
+        // FIXME: we should probably not brutally stop the service here, at least not without also
+        // ensuring that there is no other activity left over which may be using it.
+        conn.service.stop()
+        finish()
     }
 
     private fun do_connect() {
