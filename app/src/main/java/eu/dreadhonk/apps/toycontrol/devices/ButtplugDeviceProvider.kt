@@ -36,10 +36,10 @@ class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {
             return
         }
         if (state.compareAndSet(STATE_SCAN_QUEUED, STATE_SCAN_QUEUED)) {
-            Log.i("ButtplugDeviceProvider", "not connected. queueing scan request.")
+            Log.i("ButtplugDeviceProvider", "not connected. scan request already pending.")
             return
         }
-        Log.i("ButtplugDeviceProvider", "not connected. queueing scan request.")
+        Log.i("ButtplugDeviceProvider", "already connected, issuing scan request.")
         client.startScanning()
     }
 
@@ -60,6 +60,7 @@ class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {
     }
 
     private fun handleClientInitialized() {
+        Log.i("ButtplugDeviceProvider", "client initialized")
         if (!state.compareAndSet(STATE_DISCONNECTED, STATE_CONNECTED)) {
             // previous state was not DISCONNECTED
             if (state.compareAndSet(STATE_SCAN_QUEUED, STATE_CONNECTED)) {
