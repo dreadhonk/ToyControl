@@ -68,7 +68,7 @@ class ControlGraph {
         outEdges: Map<Node, List<HalfEdge>>)
     {
         // TODO: disable this outside of debug builds
-        Log.v("ControlGraph", "checkEdgeConsistency()")
+        //Log.v("ControlGraph", "checkEdgeConsistency()")
         // check out edge -> in edge consistency
         for (nodeEntry in outEdges.entries) {
             val outNode = nodeEntry.key
@@ -77,12 +77,12 @@ class ControlGraph {
                 val outSlot = NodeOutSlot(outNode, halfEdge.outIndex)
                 val inSlot = halfEdge.dest
                 val existingOutSlot = inEdges.get(inSlot)
-                Log.v("ControlGraph", String.format("checkEdgeConsistency: outEdges: %s:%d -> %s:%d",
+                /*Log.v("ControlGraph", String.format("checkEdgeConsistency: outEdges: %s:%d -> %s:%d",
                     outSlot.node,
                     outSlot.outIndex,
                     inSlot.node,
                     inSlot.inIndex
-                ))
+                ))*/
                 if (existingOutSlot == null) {
                     throw IllegalArgumentException(String.format(
                         "graph invariant violated: edge %s:%d -> %s:%d in outEdges, but not in inEdges",
@@ -112,12 +112,12 @@ class ControlGraph {
             val outSlot = edgeEntry.value
             val halfEdge = HalfEdge(outSlot.outIndex, inSlot)
             val outEdges = outEdges.get(outSlot.node)
-            Log.v("ControlGraph", String.format("checkEdgeConsistency: inEdges: %s:%d -> %s:%d",
+            /*Log.v("ControlGraph", String.format("checkEdgeConsistency: inEdges: %s:%d -> %s:%d",
                 outSlot.node,
                 outSlot.outIndex,
                 inSlot.node,
                 inSlot.inIndex
-            ))
+            ))*/
             if (outEdges == null || !outEdges.contains(halfEdge)) {
                 throw IllegalArgumentException(String.format(
                     "graph invariant violated: edge %s:%d -> %s:%d in inEdges, but not in outEdges",
@@ -139,7 +139,7 @@ class ControlGraph {
     }
 
     private fun updateTopology() {
-        Log.v("ControlGraph", "updateTopology()")
+        //Log.v("ControlGraph", "updateTopology()")
         checkEdgeConsistency(inEdges, outEdges)
         topologyInvalidated = false
         val noincoming = ArrayList<Node>();
@@ -193,27 +193,27 @@ class ControlGraph {
 
         for (inNode in tmpNodes) {
             if (!nodeHasInternalInputs(inNode, tmpInEdges)) {
-                Log.v("ControlGraph", String.format("updateTopology: adding %s to initial set", inNode.javaClass.simpleName))
+                //Log.v("ControlGraph", String.format("updateTopology: adding %s to initial set", inNode.javaClass.simpleName))
                 noincoming.add(inNode)
             }
         }
 
         while (noincoming.isNotEmpty()) {
             val currNode = noincoming.removeAt(noincoming.size - 1)
-            Log.v("ControlGraph", String.format("updateTopology: processing: %s", currNode.javaClass.simpleName))
+            //Log.v("ControlGraph", String.format("updateTopology: processing: %s", currNode.javaClass.simpleName))
             sortedNodes.add(currNode)
             val dests = tmpOutEdges.get(currNode)
             if (dests == null || dests.isEmpty()) {
-                Log.v("ControlGraph", String.format("updateTopology: no outbound edges"))
+                //Log.v("ControlGraph", String.format("updateTopology: no outbound edges"))
                 continue
             }
 
             for (edge in dests) {
-                Log.v("ControlGraph", String.format("updateTopology: processing edge %s:%d -> %s:%d",
+                /*Log.v("ControlGraph", String.format("updateTopology: processing edge %s:%d -> %s:%d",
                     currNode,
                     edge.outIndex,
                     edge.dest.node,
-                    edge.dest.inIndex))
+                    edge.dest.inIndex))*/
                 tmpInEdges.remove(edge.dest)
                 if (!nodeHasInternalInputs(edge.dest.node, tmpInEdges)) {
                     if (noincoming.contains(edge.dest.node)) {
@@ -229,7 +229,7 @@ class ControlGraph {
 
         if (tmpInEdges.isNotEmpty()) {
             for (edge in tmpInEdges) {
-                Log.v("ControlGraph",
+                Log.d("ControlGraph",
                     String.format("remaining edge: %s:%d <- %s:%d",
                         edge.key.node, edge.key.inIndex,
                         edge.value.node, edge.value.outIndex)
@@ -266,9 +266,9 @@ class ControlGraph {
     public fun link(outputNode: Node, outputIndex: Int,
                     inputNode: Node, inputIndex: Int)
     {
-        Log.v("ControlGraph", String.format("link(%s, %d, %s, %d)",
+        /*Log.v("ControlGraph", String.format("link(%s, %d, %s, %d)",
             outputNode, outputIndex,
-            inputNode, inputIndex))
+            inputNode, inputIndex))*/
         checkEdgeConsistency(inEdges, outEdges)
         val inSlot = NodeInSlot(inputNode, inputIndex)
         val outSlot = NodeOutSlot(outputNode, outputIndex)
@@ -298,7 +298,7 @@ class ControlGraph {
     }
 
     public fun update(): Long {
-        Log.v("ControlGraph", "new run")
+        //Log.v("ControlGraph", "new run")
         var minDelay = ToyController.REQUIRES_INPUT_CHANGE
 
         if (topologyInvalidated) {
@@ -322,11 +322,11 @@ class ControlGraph {
                 }
             }
 
-            Log.v("ControlGraph", String.format("%s node: has updated inputs: %s", inNode.javaClass.simpleName, updated))
+            //Log.v("ControlGraph", String.format("%s node: has updated inputs: %s", inNode.javaClass.simpleName, updated))
 
             if (updated || inNode.invalidated) {
                 val delay = inNode.update()
-                Log.v("ControlGraph", String.format("%s node: returned %d", inNode.javaClass.simpleName, delay))
+                // Log.v("ControlGraph", String.format("%s node: returned %d", inNode.javaClass.simpleName, delay))
                 if (delay == ToyController.RESULT_UPDATED) {
                     dirtyFlags.put(inNode, true)
                 } else if (delay > ToyController.RESULT_UPDATED) {

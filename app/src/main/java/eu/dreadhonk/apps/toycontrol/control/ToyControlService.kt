@@ -62,6 +62,7 @@ class ToyControlService : Service() {
             val providerUri = provider.uri!!
             controller.addDevice(device) {
                 val provider = deviceManager.getProviderByUri(providerUri)!!
+                Log.d("ToyControlService", "Setting device "+deviceId+" motors to "+it)
                 provider.setMotors(deviceId, it)
             }
         }
