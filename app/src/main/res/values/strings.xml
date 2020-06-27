@@ -2,4 +2,7 @@
     <string name="app_name">ToyControl</string>
 
     <string name="notification_text">Controlling your toys</string>
+    <string name="scan">Scan</string>
+    <string name="enter_control_mode">Enter Control Mode</string>
+    <string name="connect">Connect</string>
 </resources>
