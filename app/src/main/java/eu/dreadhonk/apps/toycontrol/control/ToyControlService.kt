@@ -12,6 +12,7 @@ import android.content.ServiceConnection
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
@@ -44,6 +45,8 @@ class ToyControlService : Service() {
     private lateinit var controller: ToyController
     private lateinit var database: DeviceDatabase
     private lateinit var deviceManager: DeviceManager
+
+    private lateinit var wakeLock: PowerManager.WakeLock
 
     private val deviceListener = object : DeviceManagerCallbacks {
         override fun deviceDeleted(provider: Provider, device: Device) {
@@ -195,6 +198,12 @@ class ToyControlService : Service() {
             deviceManager.registerProvider(bpProvider, "Local toys")
         }
 
+        wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
+            newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ToyControlService::BackgroundControl").apply {
+                acquire()
+            }
+        }
+
         val sensors = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         controller = ToyController(sensors, this, deviceManager)
@@ -202,6 +211,7 @@ class ToyControlService : Service() {
     }
 
     override fun onDestroy() {
+        wakeLock.release()
         super.onDestroy()
     }
 
