@@ -56,6 +56,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        findViewById<Button>(R.id.btn_preferences).also {
+            it.setOnClickListener {
+                val intent = Intent(this, PreferencesActivity::class.java)
+                startActivity(intent)
+            }
+        }
+
         findViewById<Button>(R.id.btn_exit).also {
             it.setOnClickListener {
                 stopAndExit()

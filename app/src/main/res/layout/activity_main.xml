@@ -35,6 +35,12 @@
             android:text="@string/enter_control_mode" />
 
         <Button
+            android:id="@+id/btn_preferences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/preferences" />
+
+        <Button
             android:id="@+id/btn_exit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

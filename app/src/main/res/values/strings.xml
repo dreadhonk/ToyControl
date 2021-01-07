@@ -5,5 +5,9 @@
     <string name="scan">Scan</string>
     <string name="enter_control_mode">Enter Control Mode</string>
     <string name="connect">Connect</string>
+    <string name="preferences">Settings</string>
     <string name="exit">Exit and stop everything</string>
+
+    <string name="prefgroup_debug">Debugging options</string>
+    <string name="pref_enable_debug_outputs">Enable dummy outputs</string>
 </resources>
