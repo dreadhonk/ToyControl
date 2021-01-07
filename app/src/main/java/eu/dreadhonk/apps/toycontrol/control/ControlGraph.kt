@@ -183,10 +183,11 @@ class ControlGraph {
 
         checkEdgeConsistency(tmpInEdges, tmpOutEdges)
 
-        Log.d("ControlGraph", String.format("updateTopology: node prune done. removed %d nodes and %d/%d edges",
+        Log.d("ControlGraph", String.format("updateTopology: node prune done. removed %d nodes and %d/%d edges. remaining nodes: %d",
             nodes.size - tmpNodes.size,
             inEdges.size - tmpInEdges.size,
-            outEdges.size - tmpOutEdges.size))
+            outEdges.size - tmpOutEdges.size,
+            tmpNodes.size))
 
         sortedNodes.clear()
         sortedNodes.ensureCapacity(tmpNodes.size)
@@ -342,5 +343,19 @@ class ControlGraph {
 
     public fun isNodeUsed(node: Node): Boolean {
         return sortedNodes.contains(node)
+    }
+
+    public fun dump(tag: String) {
+        Log.v(tag, "--- BEGIN CONTROL GRAPH DUMP ---")
+        for (node in nodes) {
+            Log.v(tag, node.toString())
+            val edges = outEdges[node];
+            if (edges != null) {
+                for (edge in edges) {
+                    Log.v(tag, String.format("  [%d] -> %s[%d]", edge.outIndex, edge.dest.node, edge.dest.inIndex))
+                }
+            }
+        }
+        Log.v(tag, "--- END CONTROL GRAPH DUMP ---")
     }
 }
