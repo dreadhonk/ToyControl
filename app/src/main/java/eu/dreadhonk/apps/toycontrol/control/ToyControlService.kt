@@ -290,6 +290,10 @@ class ToyControlService : Service() {
         controller.setSimpleControlMode(deviceId, motor, mode)
     }
 
+    fun getSimpleControlMode(deviceId: Long, motor: Int): SimpleControlMode? {
+        return controller.getSimpleControlMode(deviceId, motor)
+    }
+
     fun setManualInputValue(deviceId: Long, motor: Int, value: Float) {
         controller.setManualInput(deviceId, motor, value)
     }

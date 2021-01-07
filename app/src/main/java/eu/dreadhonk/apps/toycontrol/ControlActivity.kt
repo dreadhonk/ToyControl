@@ -78,6 +78,10 @@ class ControlActivity : AppCompatActivity() {
                 newControl.deviceName = device.device.displayName
                 newControl.devicePort = "M${output}"
                 newControl.listener = EventForwarder(mService!!, device.device.id, output)
+                val mode = mService?.getSimpleControlMode(device.device.id, output)
+                if (mode != null) {
+                    newControl.mode = mode
+                }
                 controls.add(newControl)
                 targetLayout.addView(
                     newControl,

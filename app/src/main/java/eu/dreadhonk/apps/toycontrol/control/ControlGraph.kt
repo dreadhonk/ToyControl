@@ -356,6 +356,22 @@ class ControlGraph {
         return sortedNodes.contains(node)
     }
 
+    public fun hasLink(outputNode: Node, outputIndex: Int, inputNode: Node, inputIndex: Int?): Boolean {
+        val edges = outEdges[outputNode] ?: return false
+        for (edge in edges) {
+            if (edge.outIndex != outputIndex) {
+                continue
+            }
+            if (edge.dest.node != inputNode) {
+                continue
+            }
+            if (inputIndex == null || inputIndex == edge.dest.inIndex) {
+                return true
+            }
+        }
+        return false
+    }
+
     public fun dump(tag: String) {
         Log.v(tag, "--- BEGIN CONTROL GRAPH DUMP ---")
         for (node in nodes) {

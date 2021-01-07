@@ -98,6 +98,16 @@ class IntensityControl: LinearLayout {
                 parent
             )
         }
+
+        public fun getPositionByValue(mode: SimpleControlMode): Int {
+            for (i in 0 until count) {
+                val item = getItem(i) as ControlModeItem
+                if (item.mode == mode) {
+                    return i
+                }
+            }
+            return -1
+        }
     }
 
     private val mEventForwarder = object: IntensitySliderView.OnValueChangeListener {
@@ -141,6 +151,14 @@ class IntensityControl: LinearLayout {
         }
         set(v: CharSequence) {
             mDevicePort.text = v
+        }
+
+    public var mode: SimpleControlMode
+        get() {
+            return adapter.getItem(mMode.selectedItemPosition)!!.mode
+        }
+        set(mode: SimpleControlMode) {
+            mMode.setSelection(adapter.getPositionByValue(mode))
         }
 
     private fun init(attrs: AttributeSet?, defStyle: Int) {

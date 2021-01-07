@@ -11,6 +11,7 @@ import androidx.lifecycle.*
 import eu.dreadhonk.apps.toycontrol.data.DeviceWithIO
 import eu.dreadhonk.apps.toycontrol.devices.DeviceManager
 import java.util.*
+import java.util.concurrent.FutureTask
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
@@ -237,6 +238,37 @@ class ToyController(private val sensors: SensorManager,
 
     fun enableSimpleControl() {
         // Default
+    }
+
+    fun getSimpleControlMode(deviceId: Long, motor: Int): SimpleControlMode? {
+        val fut = FutureTask<SimpleControlMode?>(fun(): SimpleControlMode? {
+            val outputNode = outputNodes[deviceId]
+            if (outputNode == null) {
+                return null
+            }
+            val manualInputNode = manualInputNodes[deviceId]
+            if (manualInputNode == null) {
+                return null
+            }
+            if (graph.hasLink(manualInputNode, motor, outputNode, motor)) {
+                return SimpleControlMode.MANUAL
+            }
+            if (graph.hasLink(gravityNode, 0, outputNode, motor)) {
+                return SimpleControlMode.GRAVITY_X
+            }
+            if (graph.hasLink(gravityNode, 1, outputNode, motor)) {
+                return SimpleControlMode.GRAVITY_Y
+            }
+            if (graph.hasLink(gravityNode, 2, outputNode, motor)) {
+                return SimpleControlMode.GRAVITY_Z
+            }
+            if (graph.hasLink(shakeNode, 0, outputNode, motor)) {
+                return SimpleControlMode.SHAKE
+            }
+            return null
+        })
+        worker.post(fut)
+        return fut.get()
     }
 
     fun setSimpleControlMode(deviceId: Long, motor: Int, mode: SimpleControlMode) {
