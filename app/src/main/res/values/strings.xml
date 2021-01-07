@@ -8,6 +8,8 @@
     <string name="preferences">Settings</string>
     <string name="exit">Exit and stop everything</string>
 
+    <string name="switch_keep_floating">Floating</string>
+
     <!-- PREFERENCES -->
     <string name="prefgroup_debug">Debugging options</string>
     <string name="pref_enable_debug_outputs">Enable dummy outputs</string>

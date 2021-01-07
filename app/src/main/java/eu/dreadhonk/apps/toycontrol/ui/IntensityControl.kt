@@ -163,6 +163,8 @@ class IntensityControl: LinearLayout {
 
     private fun init(attrs: AttributeSet?, defStyle: Int) {
         orientation = LinearLayout.VERTICAL
+        val padding = Math.round(resources.displayMetrics.density * 4)
+        setPadding(padding, padding, padding, padding)
 
         val topLayout = LinearLayout(context)
         topLayout.orientation = LinearLayout.HORIZONTAL
@@ -222,6 +224,7 @@ class IntensityControl: LinearLayout {
         mSlider = IntensitySliderView(context)
         mSlider.setOnValueChangedListener(mEventForwarder)
         mFloatButton = Switch(context)
+        mFloatButton.text = context.getString(R.string.switch_keep_floating)
 
         addView(topLayout, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 0.0f))
         addView(mMode, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 0.0f))
