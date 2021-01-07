@@ -12,16 +12,32 @@ class DebugDeviceProvider: DeviceProvider {
         )
     )
 
+    private var mOnlineStatus: Boolean = false
+
     override var listener: DeviceProviderCallbackListener? = null
-    override val online: Boolean = true
+    override var online: Boolean
+        get() {
+            return mOnlineStatus;
+        }
+        set(new_value) {
+            val old = mOnlineStatus
+            mOnlineStatus = new_value
+            if (old != new_value) {
+                updateOnlineStatus()
+            }
+        }
     override val uri: String = "local:"
 
     override fun devices(): Iterator<DeviceInfo> {
         return listOf(debugDevice).listIterator()
     }
 
-    init {
-        this.listener?.deviceOnline(this, debugDevice)
+    private fun updateOnlineStatus() {
+        if (mOnlineStatus) {
+            this.listener?.deviceOnline(this, debugDevice)
+        } else {
+            this.listener?.deviceDeleted(this, debugDevice.providerDeviceId)
+        }
     }
 
     override fun initiateScan() {

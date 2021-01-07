@@ -5,10 +5,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.bluetooth.BluetoothClass
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
@@ -18,6 +15,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
+import androidx.preference.PreferenceManager
 import androidx.room.Room
 import eu.dreadhonk.apps.toycontrol.MainActivity
 import eu.dreadhonk.apps.toycontrol.R
@@ -47,6 +45,8 @@ class ToyControlService : Service() {
     private lateinit var deviceManager: DeviceManager
 
     private lateinit var wakeLock: PowerManager.WakeLock
+
+    private val debugDevices = DebugDeviceProvider()
 
     private val deviceListener = object : DeviceManagerCallbacks {
         override fun deviceDeleted(provider: Provider, device: Device) {
@@ -167,6 +167,39 @@ class ToyControlService : Service() {
             .setPriority(Notification.PRIORITY_MIN);
     }
 
+    private class DebugDeviceController(
+            private var provider: DebugDeviceProvider,
+            private var context: Context
+    ): LifecycleObserver, SharedPreferences.OnSharedPreferenceChangeListener {
+        private val PREF_KEY = "debug/enable_dummy_outputs"
+
+        fun setUpListener() {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            prefs.registerOnSharedPreferenceChangeListener(this)
+            val current = prefs.getBoolean(PREF_KEY, false)
+            Executors.newSingleThreadExecutor().execute {
+                provider.online = current
+            }
+        }
+
+        fun tearDownListener() {
+            PreferenceManager.getDefaultSharedPreferences(context).unregisterOnSharedPreferenceChangeListener(this)
+        }
+
+        override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
+            if (key != PREF_KEY) {
+                return;
+            }
+            Log.d("DebugDeviceController", "dummy output preference changed")
+            val enabled = sharedPreferences.getBoolean(PREF_KEY, false)
+            Executors.newSingleThreadExecutor().execute {
+                provider.online = enabled
+            }
+        }
+    }
+
+    private lateinit var debugDeviceController: DebugDeviceController
+
     override fun onCreate() {
         super.onCreate()
 
@@ -191,9 +224,15 @@ class ToyControlService : Service() {
             ButtplugServerFactory(this)
         )
 
+        debugDeviceController = DebugDeviceController(
+            debugDevices,
+            applicationContext
+        )
+        debugDeviceController.setUpListener()
+
         // TODO: think about the thread-safety of this...
         Executors.newSingleThreadExecutor().execute {
-            deviceManager.registerProvider(DebugDeviceProvider(), "Test devices")
+            deviceManager.registerProvider(debugDevices, "Test devices")
             val bpProvider = ButtplugDeviceProvider(client)
             bpProvider.initiateScan() // will be queued until connect!
             deviceManager.registerProvider(bpProvider, "Local toys")
@@ -213,6 +252,7 @@ class ToyControlService : Service() {
 
     override fun onDestroy() {
         wakeLock.release()
+        debugDeviceController.tearDownListener()
         super.onDestroy()
     }
 

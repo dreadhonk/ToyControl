@@ -64,12 +64,12 @@ class DeviceManager(database: DeviceDatabase) {
 
     private fun handleDeviceDeleted(provider: DeviceProvider, deviceId: Long) {
         val localProvider = database.providers().getByURI(provider.uri)!!
+        val localDevice = database.devices().getByIDs(localProvider.id, deviceId)!!
         database.devices().deleteByIDs(localProvider.id, deviceId)
         val listener = this.listener
         if (listener == null) {
             return
         }
-        val localDevice = database.devices().getByIDs(localProvider.id, deviceId)!!
         listener.deviceDeleted(localProvider, localDevice)
     }
 

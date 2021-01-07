@@ -6,6 +6,6 @@
     </PreferenceCategory>
     <SwitchPreference
         android:defaultValue="false"
-        android:key="enable_debug_outputs"
+        android:key="debug/enable_dummy_outputs"
         android:title="@string/pref_enable_debug_outputs" />
 </PreferenceScreen>
