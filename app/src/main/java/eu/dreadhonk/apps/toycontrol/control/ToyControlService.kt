@@ -52,12 +52,18 @@ class ToyControlService : Service() {
     private val debugDevices = DebugDeviceProvider()
 
     private val deviceListener = object : DeviceManagerCallbacks {
+        private fun removeDevice(deviceId: Long) {
+            controller.removeDevice(deviceId)
+        }
+
         override fun deviceDeleted(provider: Provider, device: Device) {
             Log.i("ToyControlService", "Device deleted: ${device.displayName} (at ${provider.displayName})")
+            removeDevice(device.id)
         }
 
         override fun deviceOffline(provider: Provider, device: Device) {
             Log.i("ToyControlService", "Device went offline: ${device.displayName} (at ${provider.displayName})")
+            removeDevice(device.id)
         }
 
         override fun deviceOnline(provider: Provider, device: DeviceWithIO) {
