@@ -31,12 +31,15 @@ import org.metafetish.buttplug.core.ButtplugEvent
 import org.metafetish.buttplug.core.Messages.DeviceAdded
 import org.metafetish.buttplug.core.Messages.DeviceRemoved
 import java.lang.IllegalStateException
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class ToyControlService : Service() {
     companion object {
         const val ONGOING_NOTIFICATION_ID = 1;
     }
+
+    private val dbExecutor = Executors.newSingleThreadExecutor()
 
     public lateinit var client: ButtplugClient;
     /* private lateinit var controlLoop: Thread; */
@@ -169,7 +172,8 @@ class ToyControlService : Service() {
 
     private class DebugDeviceController(
             private var provider: DebugDeviceProvider,
-            private var context: Context
+            private var context: Context,
+            private var dbExecutor: ExecutorService
     ): LifecycleObserver, SharedPreferences.OnSharedPreferenceChangeListener {
         private val PREF_KEY = "debug/enable_dummy_outputs"
 
@@ -177,7 +181,7 @@ class ToyControlService : Service() {
             val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             prefs.registerOnSharedPreferenceChangeListener(this)
             val current = prefs.getBoolean(PREF_KEY, false)
-            Executors.newSingleThreadExecutor().execute {
+            dbExecutor.execute {
                 provider.online = current
             }
         }
@@ -192,7 +196,7 @@ class ToyControlService : Service() {
             }
             Log.d("DebugDeviceController", "dummy output preference changed")
             val enabled = sharedPreferences.getBoolean(PREF_KEY, false)
-            Executors.newSingleThreadExecutor().execute {
+            dbExecutor.execute {
                 provider.online = enabled
             }
         }
@@ -226,7 +230,8 @@ class ToyControlService : Service() {
 
         debugDeviceController = DebugDeviceController(
             debugDevices,
-            applicationContext
+            applicationContext,
+            dbExecutor
         )
         debugDeviceController.setUpListener()
 
