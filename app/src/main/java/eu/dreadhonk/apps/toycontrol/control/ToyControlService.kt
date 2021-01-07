@@ -1,13 +1,11 @@
 package eu.dreadhonk.apps.toycontrol.control
 
-import android.app.Activity
-import android.app.Notification
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.bluetooth.BluetoothClass
 import android.content.*
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Handler
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
@@ -54,6 +52,18 @@ class ToyControlService : Service() {
     private val deviceListener = object : DeviceManagerCallbacks {
         private fun removeDevice(deviceId: Long) {
             controller.removeDevice(deviceId)
+            updateDeviceCount()
+        }
+
+        private fun updateDeviceCount() {
+            controller.post {
+                val deviceCount = controller.activeDevices
+                Log.d("ToyControlService", String.format("updated device count: %d", deviceCount))
+                val handler = Handler(this@ToyControlService.mainLooper)
+                handler.post {
+                    this@ToyControlService.updateServiceNotification(deviceCount)
+                }
+            }
         }
 
         override fun deviceDeleted(provider: Provider, device: Device) {
@@ -74,6 +84,7 @@ class ToyControlService : Service() {
                 Log.d("ToyControlService", "Setting device "+deviceId+" motors to "+it)
                 provider.setMotors(deviceId, it)
             }
+            updateDeviceCount()
         }
     }
 
@@ -162,20 +173,6 @@ class ToyControlService : Service() {
         return Binder(this)
     }
 
-    private fun makeNotification(msg: CharSequence): Notification.Builder {
-        val pendingIntent: PendingIntent =
-            Intent(this, MainActivity::class.java).let { notificationIntent ->
-                PendingIntent.getActivity(this, 0, notificationIntent, 0)
-            }
-
-        return Notification.Builder(this)
-            .setContentTitle(msg)
-            .setContentIntent(pendingIntent)
-            .setSmallIcon(R.drawable.ic_foreground_notification)
-            .setWhen(0)
-            .setPriority(Notification.PRIORITY_MIN);
-    }
-
     private class DebugDeviceController(
             private var provider: DebugDeviceProvider,
             private var context: Context,
@@ -209,15 +206,22 @@ class ToyControlService : Service() {
     }
 
     private lateinit var debugDeviceController: DebugDeviceController
+    private lateinit var notification: ControlNotification
+
+    private fun updateServiceNotification(deviceCount: Int) {
+        getSystemService(NotificationManager::class.java)!!.notify(
+            ONGOING_NOTIFICATION_ID,
+            notification.updateNotification(deviceCount)
+        )
+    }
 
     override fun onCreate() {
         super.onCreate()
 
         Log.d("ToyControlService", "onCreate called")
 
-        val notification = makeNotification(getText(R.string.notification_text))
-
-        startForeground(ONGOING_NOTIFICATION_ID, notification.build())
+        notification = ControlNotification(this)
+        startForeground(ONGOING_NOTIFICATION_ID, notification.updateNotification(0))
         Log.d("ToyControlService", "started into foreground")
 
         database = Room.databaseBuilder(

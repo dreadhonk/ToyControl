@@ -8,6 +8,12 @@
     <string name="preferences">Settings</string>
     <string name="exit">Exit and stop everything</string>
 
+    <!-- PREFERENCES -->
     <string name="prefgroup_debug">Debugging options</string>
     <string name="pref_enable_debug_outputs">Enable dummy outputs</string>
+
+    <!-- ALL ABOUT NOTIFICATIONS -->
+    <string name="nchannel_title_control">Foreground service</string>
+    <string name="nchannel_description_control">Keeps the app alive</string>
+    <string name="notification_title_control">Controlling your toys</string>
 </resources>
