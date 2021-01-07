@@ -18,7 +18,9 @@ class ToyController(private val sensors: SensorManager,
                     private val context: Context,
                     private val devices: DeviceManager): SensorEventListener, LifecycleOwner {
 
+    private val supportNodes = HashMap<Long, ArrayList<Node>>();
     private val outputNodes = HashMap<Long, Node>();
+    private val toyNodes = HashMap<Long, ToyNode>();
     private val manualInputNodes = HashMap<Long, PassthroughNode>();
 
     // TODO: do normalisation in separate node
@@ -75,8 +77,11 @@ class ToyController(private val sensors: SensorManager,
     }
 
     private val worker = Worker { do_update() }
-
     private val graph = ControlGraph()
+    public val activeDevices: Int
+        get() {
+            return toyNodes.count()
+        }
 
     private class SensorRegistration(
         private val listener: SensorEventListener,
@@ -270,45 +275,97 @@ class ToyController(private val sensors: SensorManager,
     }
 
     fun addDevice(device: DeviceWithIO, updateCallback: (FloatArray) -> Unit) {
+        val deviceId = device.device.id
         worker.post {
             val nIO = device.motors.size
-            if (!outputNodes.containsKey(device.device.id)) {
-                val toyNode = ToyNode(nIO) {
+            // need to keep track of the toy node separately in order to allow removal later;
+            // the toy node has a side effect, so graph pruning will not remove it.
+            var toyNode = toyNodes[deviceId];
+            if (toyNode == null) {
+                // TODO: also handle the case if hte IO count has changed for some reason
+                toyNode = ToyNode(nIO) {
                     updateCallback(it)
                 }
-                val rateLimiter = RateLimitNode(100, nIO)
-                val outputNode = PassthroughNode(nIO)
+                toyNodes[deviceId] = toyNode
+            }
 
-                graph.addNode(outputNode)
-                graph.addNode(rateLimiter)
-                graph.addNode(toyNode)
+            var outputNode = outputNodes[deviceId];
+            if (outputNode == null) {
+                outputNode = PassthroughNode(nIO)
+                outputNodes[deviceId] = outputNode
+            }
 
-                Array<QuantizerNode>(nIO) { i ->
-                    val motor = device.motors[i]
-                    val q = QuantizerNode(motor.steps.toInt())
-                    graph.addNode(q)
-                    graph.link(outputNode, i, q, 0)
-                    graph.link(q, 0, rateLimiter, i)
-                    graph.link(rateLimiter, i, toyNode, i)
-                    q
+            var supportNodes = this.supportNodes[deviceId];
+            if (supportNodes != null) {
+                for (node in supportNodes) {
+                    graph.removeNode(node)
                 }
-
-                outputNodes[device.device.id] = outputNode
+                supportNodes.clear()
+            } else {
+                supportNodes = ArrayList<Node>();
+                this.supportNodes[deviceId] = supportNodes
             }
 
-            if (!manualInputNodes.containsKey(device.device.id)) {
-                val node = PassthroughNode(nIO)
-                manualInputNodes[device.device.id] = node
-                graph.addNode(node)
+            val rateLimiter = RateLimitNode(100, nIO)
+            supportNodes.add(rateLimiter)
+
+            graph.addNode(outputNode)
+            graph.addNode(rateLimiter)
+            graph.addNode(toyNode)
+
+            Array<QuantizerNode>(nIO) { i ->
+                val motor = device.motors[i]
+                val q = QuantizerNode(motor.steps.toInt())
+                supportNodes.add(q)
+                graph.addNode(q)
+                graph.link(outputNode, i, q, 0)
+                graph.link(q, 0, rateLimiter, i)
+                graph.link(rateLimiter, i, toyNode, i)
+                q
             }
 
-            val manualInput = manualInputNodes[device.device.id]!!
-            val output = outputNodes[device.device.id]!!
+            var manualInputNode = manualInputNodes[deviceId]
+            if (manualInputNode == null) {
+                manualInputNode = PassthroughNode(nIO)
+                manualInputNodes[deviceId] = manualInputNode
+                graph.addNode(manualInputNode)
+            }
 
             for (i in 0 until nIO) {
-                graph.link(manualInput, i, output, i)
+                graph.link(manualInputNode, i, outputNode, i)
             }
+            Log.i("ToyController", String.format("added device %d", deviceId))
+            graph.dump("ToyController")
         }
+    }
+
+    fun removeDevice(deviceId: Long) {
+        worker.post {
+            val toyNode = toyNodes.remove(deviceId)
+            if (toyNode != null) {
+                graph.removeNode(toyNode)
+            }
+            val outputNode = outputNodes.remove(deviceId)
+            if (outputNode != null) {
+                graph.removeNode(outputNode)
+            }
+            val manualInput = manualInputNodes.remove(deviceId)
+            if (manualInput != null) {
+                graph.removeNode(manualInput)
+            }
+            val supportNodes = this.supportNodes.remove(deviceId)
+            if (supportNodes != null) {
+                for (node in supportNodes) {
+                    graph.removeNode(node)
+                }
+            }
+            Log.i("ToyController", String.format("removed device %d", deviceId))
+            graph.dump("ToyController")
+        }
+    }
+
+    fun post(job: () -> Unit) {
+        worker.post(job)
     }
 
     fun setManualInput(deviceId: Long, motor: Int, value: Float) {
