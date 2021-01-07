@@ -250,6 +250,17 @@ class ControlGraph {
         topologyInvalidated = true
     }
 
+    public fun removeNode(node: Node) {
+        val nodeOuts = outEdges.remove(node)
+        if (nodeOuts != null) {
+            for (outEdge in nodeOuts) {
+                inEdges.remove(outEdge.dest)
+            }
+        }
+        nodes.remove(node)
+        topologyInvalidated = true
+    }
+
     public fun unlinkInput(inputNode: Node, inputIndex: Int) {
         val inSlot = NodeInSlot(inputNode, inputIndex)
         val source = inEdges.remove(inSlot)
