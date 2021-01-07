@@ -89,23 +89,23 @@ class IntensitySliderView: View {
         }
 
     private val mSliderSlotPaint = Paint().apply {
-        color = Color.BLACK
+        color = context.getColor(eu.dreadhonk.apps.toycontrol.R.color.sliderSlot)
         style = Paint.Style.FILL_AND_STROKE
     }
 
     private val mKnobFill = Paint().apply {
-        color = Color.GRAY
+        color = context.getColor(eu.dreadhonk.apps.toycontrol.R.color.sliderKnob)
         style = Paint.Style.FILL
     }
 
     private val mKnobBorder = Paint().apply {
-        color = Color.BLACK
+        color = context.getColor(eu.dreadhonk.apps.toycontrol.R.color.sliderKnobBorder)
         style = Paint.Style.STROKE
         strokeWidth = 0.0f
     }
 
     private val mKnobGrip = Paint().apply {
-        color = Color.BLACK
+        color = context.getColor(eu.dreadhonk.apps.toycontrol.R.color.sliderKnobGrip)
         style = Paint.Style.STROKE
         strokeWidth = KNOB_GRIP_LINE_WIDTH
     }

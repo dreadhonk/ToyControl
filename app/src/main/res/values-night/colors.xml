@@ -3,10 +3,10 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
-    <color name="foregroundContrast">#000000</color>
+    <color name="foregroundContrast">#eeeeee</color>
 
-    <color name="sliderSlot">#000000</color>
-    <color name="sliderKnobBorder">#000000</color>
+    <color name="sliderSlot">#dfdfdf</color>
+    <color name="sliderKnobBorder">#dfdfdf</color>
     <color name="sliderKnob">#7f7f7f</color>
-    <color name="sliderKnobGrip">#101010</color>
+    <color name="sliderKnobGrip">#dfdfdf</color>
 </resources>
