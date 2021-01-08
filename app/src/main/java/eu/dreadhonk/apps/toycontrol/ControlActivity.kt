@@ -9,20 +9,22 @@ import android.os.*
 import android.util.Log
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
-import eu.dreadhonk.apps.toycontrol.control.DeviceEvent
-import eu.dreadhonk.apps.toycontrol.control.DeviceOutputEvent
+import eu.dreadhonk.apps.toycontrol.service.DeviceEvent
+import eu.dreadhonk.apps.toycontrol.service.DeviceOutputEvent
 import eu.dreadhonk.apps.toycontrol.control.SimpleControlMode
-import eu.dreadhonk.apps.toycontrol.control.ToyControlService
+import eu.dreadhonk.apps.toycontrol.data.Device
+import eu.dreadhonk.apps.toycontrol.service.ToyControlService
 import eu.dreadhonk.apps.toycontrol.data.DeviceWithIO
+import eu.dreadhonk.apps.toycontrol.service.DeviceEventType
 import eu.dreadhonk.apps.toycontrol.ui.IntensityControl
 import eu.dreadhonk.apps.toycontrol.ui.LiveView
+import java.lang.IllegalStateException
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executors
 
 class ControlActivity : AppCompatActivity() {
     private val controls = ArrayList<IntensityControl>()
     private lateinit var targetLayout: LinearLayout
-    private var mService: ToyControlService? = null
 
     private lateinit var liveView: LiveView
 
@@ -38,42 +40,26 @@ class ControlActivity : AppCompatActivity() {
 
             val owner = ownerRef.get()
             if (owner == null) {
-                throw RuntimeException("owner is gone")
+                Log.w("ControlActivity.DeviceEventHandler", "still receiving messages, but owner is gone!")
+                return
             }
 
             val obj = msg.obj
             if (obj is DeviceOutputEvent) {
                 owner.updateDeviceValues(obj.deviceId, obj.motors)
             } else if (obj is DeviceEvent) {
-                /* when (obj.type) {
+                when (obj.type) {
                     DeviceEventType.DEVICE_ONLINE ->
-                        addDevice(obj.deviceId)
+                        owner.addDevice(obj.device, obj.motors)
                     else ->
-                        removeDevice(obj.deviceId)
-                } */
+                        owner.removeDevice(obj.deviceId)
+                }
             }
         }
     }
 
     private val mReceiver = DeviceEventHandler(this)
-
-    private val mConnection = object: ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val remoteService = (service as ToyControlService.Binder).connect()
-            mService = remoteService
-            remoteService.registerDeviceEventListener(Messenger(mReceiver))
-            Executors.newSingleThreadExecutor().execute {
-                val devices = remoteService.getDevices()
-                runOnUiThread {
-                    refreshDevices(devices)
-                }
-            }
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            mService = null
-        }
-    }
+    private val conn = ToyControlService.ScopedConnection(this, mReceiver, this.lifecycle)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,39 +83,35 @@ class ControlActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshDevices(devices: Iterable<DeviceWithIO>) {
-        targetLayout.removeAllViews()
-        controls.clear()
-
-        for (device in devices) {
-            for (output in 0 until device.motors.size) {
-                val newControl = IntensityControl(this)
-                newControl.deviceName = device.device.displayName
-                newControl.devicePort = "M${output}"
-                newControl.listener = EventForwarder(mService!!, device.device.id, output)
-                val mode = mService?.getSimpleControlMode(device.device.id, output)
-                if (mode != null) {
-                    newControl.mode = mode
-                }
-                controls.add(newControl)
-                targetLayout.addView(
-                    newControl,
-                    LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        1.0f
-                    )
-                )
-                addOutputTrace(deviceOutputToTraceId(device.device.id, output))
+    private fun addDevice(device: Device, motors: Int) {
+        for (output in 0 until motors) {
+            val newControl = IntensityControl(this)
+            newControl.deviceName = device.displayName
+            newControl.devicePort = "M${output}"
+            newControl.listener = EventForwarder(conn.service, device.id, output)
+            val mode = conn.service.getSimpleControlMode(device.id, output)
+            if (mode != null) {
+                newControl.mode = mode
             }
+            controls.add(newControl)
+            targetLayout.addView(
+                newControl,
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    1.0f
+                )
+            )
+            addOutputTrace(deviceOutputToTraceId(device.id, output))
         }
+    }
+
+    fun removeDevice(deviceId: Long) {
+
     }
 
     override fun onStart() {
         super.onStart()
-        Intent(this, ToyControlService::class.java).also { intent ->
-            bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
-        }
     }
 
     override fun onResume() {
@@ -145,7 +127,6 @@ class ControlActivity : AppCompatActivity() {
     override fun onStop() {
         targetLayout.removeAllViews()
         controls.clear()
-        unbindService(mConnection)
         super.onStop()
     }
 

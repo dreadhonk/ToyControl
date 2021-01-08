@@ -8,23 +8,40 @@ import org.metafetish.buttplug.core.Messages.DeviceAdded
 import org.metafetish.buttplug.core.Messages.DeviceRemoved
 import org.metafetish.buttplug.core.Messages.VibrateCmd
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
 
-class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {
+class ButtplugDeviceProvider(
+    private val client: ButtplugClient,
+    uri: String
+): DeviceProvider {
     companion object {
         private val STATE_DISCONNECTED = 0
         private val STATE_SCAN_QUEUED = 1
         private val STATE_CONNECTED = 2
     }
 
-    private val client = client
+    private val lock = ReentrantLock()
     private val state = AtomicInteger(0)
     private val devices = LongSparseArray<DeviceInfo>()
 
     override var listener: DeviceProviderCallbackListener? = null
-    override val online: Boolean
-        get() = state.get() == STATE_CONNECTED
-    override val uri: String
-        get() = "buttplug:"
+    override val uri = uri
+
+    override fun connect() {
+        try {
+            client.connect()
+        } catch (e: IllegalStateException) {
+            Log.i("ButtplugDeviceProvider", "failed to connect: ${e}. ignoring.")
+        }
+    }
+
+    override fun disconnect() {
+        try {
+            client.disconnect()
+        } catch (e: IllegalStateException) {
+            Log.i("ButtplugDeviceProvider", "failed to disconnect: ${e}. ignoring.")
+        }
+    }
 
     override fun initiateScan() {
         if (state.compareAndSet(STATE_DISCONNECTED, STATE_SCAN_QUEUED)) {
@@ -39,19 +56,31 @@ class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {
         client.startScanning()
     }
 
-    override fun devices(): Iterator<DeviceInfo> {
-        return devices.valueIterator()
+    override fun devices(): List<DeviceInfo> {
+        val result = ArrayList<DeviceInfo>()
+        synchronized(lock) {
+            for (device in devices.valueIterator()) {
+                result.add(device)
+            }
+        }
+        return result
     }
 
     init {
         client.initialized.addCallback {
-            handleClientInitialized()
+            synchronized(lock) {
+                handleClientInitialized()
+            }
         }
         client.deviceAdded.addCallback {
-            handleDeviceAdded(it.message as DeviceAdded)
+            synchronized(lock) {
+                handleDeviceAdded(it.message as DeviceAdded)
+            }
         }
         client.deviceRemoved.addCallback {
-            handleDeviceRemoved(it.message as DeviceRemoved)
+            synchronized(lock) {
+                handleDeviceRemoved(it.message as DeviceRemoved)
+            }
         }
     }
 

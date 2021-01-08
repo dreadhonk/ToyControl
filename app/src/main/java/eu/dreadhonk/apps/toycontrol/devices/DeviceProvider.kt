@@ -3,11 +3,11 @@ package eu.dreadhonk.apps.toycontrol.devices
 interface DeviceProvider {
     public var listener: DeviceProviderCallbackListener?
     public val uri: String
-    public val online: Boolean
 
-    fun devices(): Iterator<DeviceInfo>
+    fun devices(): List<DeviceInfo>
+    fun connect()
     fun initiateScan()
-
+    fun disconnect()
     fun setMotor(providerDeviceId: Long, motorIndex: Int, value: Float)
 
     fun setMotors(providerDeviceId: Long, values: FloatArray) {

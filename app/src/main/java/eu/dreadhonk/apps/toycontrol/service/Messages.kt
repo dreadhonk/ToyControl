@@ -1,4 +1,6 @@
-package eu.dreadhonk.apps.toycontrol.control
+package eu.dreadhonk.apps.toycontrol.service
+
+import eu.dreadhonk.apps.toycontrol.data.Device
 
 enum class DeviceEventType(val id: Int) {
     DEVICE_ONLINE(1),
@@ -8,10 +10,16 @@ enum class DeviceEventType(val id: Int) {
 
 class DeviceEvent(
     val type: DeviceEventType,
-    val deviceId: Long
+    val deviceId: Long,
+    val device: Device,
+    val motors: Int
 ): Object() {}
 
 class DeviceOutputEvent(
     val deviceId: Long,
     val motors: FloatArray
+): Object() {}
+
+class PermissionRequiredEvent(
+    val permission: String
 ): Object() {}

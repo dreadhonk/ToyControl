@@ -11,6 +11,8 @@
     <string name="switch_keep_floating">Floating</string>
 
     <!-- PREFERENCES -->
+    <string name="prefgroup_connections">Connections</string>
+    <string name="pref_enable_buttplug_bluetooth">Connect to nearby Bluetooth devices</string>
     <string name="prefgroup_debug">Debugging options</string>
     <string name="pref_enable_debug_outputs">Enable dummy outputs</string>
 
@@ -18,4 +20,12 @@
     <string name="nchannel_title_control">Foreground service</string>
     <string name="nchannel_description_control">Keeps the app alive</string>
     <string name="notification_title_control">Controlling your toys</string>
+
+    <!-- WELCOME SCREEN -->
+    <string name="welcome_text_top">Welcome to</string>
+    <string name="welcome_text_main">ToyControl</string>
+    <string name="welcome_text_bottom"></string>
+    <string name="welcome_btn_next">Next</string>
+    <string name="welcome_info">Some more advanced onboarding might eventually appear here.</string>
+    <string name="welcome_enable_buttplug">Connect to Bluetooth devices</string>
 </resources>

@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <PreferenceCategory android:title="@string/prefgroup_connections">
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="connections/buttplug_bluetooth"
+            android:title="@string/pref_enable_buttplug_bluetooth" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/prefgroup_debug">
 
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="debug/enable_dummy_outputs"
+            android:title="@string/pref_enable_debug_outputs" />
     </PreferenceCategory>
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="debug/enable_dummy_outputs"
-        android:title="@string/pref_enable_debug_outputs" />
 </PreferenceScreen>

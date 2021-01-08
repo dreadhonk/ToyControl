@@ -4,13 +4,15 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Message
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import eu.dreadhonk.apps.toycontrol.control.ToyControlService
+import eu.dreadhonk.apps.toycontrol.service.ToyControlService
 import org.metafetish.buttplug.client.ButtplugClient
 import org.metafetish.buttplug.core.ButtplugEvent
 import org.metafetish.buttplug.core.Messages.DeviceAdded
@@ -20,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_LOCATION = 1;
     }
 
-    private val conn = ToyControlService.ScopedConnection(this, this.lifecycle)
+    private val conn = ToyControlService.ScopedConnection(this, null, this.lifecycle)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

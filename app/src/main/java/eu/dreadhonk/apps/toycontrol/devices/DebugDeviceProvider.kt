@@ -2,7 +2,7 @@ package eu.dreadhonk.apps.toycontrol.devices
 
 import android.util.Log
 
-class DebugDeviceProvider: DeviceProvider {
+class DebugDeviceProvider(override public val uri: String): DeviceProvider {
     private val debugDevice = DeviceInfo(
         displayName="Test device",
         providerDeviceId=1,
@@ -12,35 +12,35 @@ class DebugDeviceProvider: DeviceProvider {
         )
     )
 
-    private var mOnlineStatus: Boolean = false
-
     override var listener: DeviceProviderCallbackListener? = null
-    override var online: Boolean
-        get() {
-            return mOnlineStatus;
-        }
-        set(new_value) {
-            val old = mOnlineStatus
-            mOnlineStatus = new_value
-            if (old != new_value) {
-                updateOnlineStatus()
-            }
-        }
-    override val uri: String = "local:"
 
-    override fun devices(): Iterator<DeviceInfo> {
-        return listOf(debugDevice).listIterator()
+    private var connected: Boolean = false
+
+    override fun devices(): List<DeviceInfo> {
+        if (!connected) {
+            return ArrayList<DeviceInfo>()
+        }
+        return ArrayList(listOf(debugDevice))
     }
 
-    private fun updateOnlineStatus() {
-        if (mOnlineStatus) {
-            this.listener?.deviceOnline(this, debugDevice)
-        } else {
-            this.listener?.deviceDeleted(this, debugDevice.providerDeviceId)
+    override fun connect() {
+        val was_connected = connected
+        connected = true
+        if (!was_connected) {
+            listener?.deviceOnline(this, debugDevice)
+        }
+    }
+
+    override fun disconnect() {
+        val was_connected = connected
+        connected = false
+        if (was_connected) {
+            listener?.deviceDeleted(this, debugDevice.providerDeviceId)
         }
     }
 
     override fun initiateScan() {
+        // scan is a no-op for debug devices
     }
 
     override fun setMotor(providerDeviceId: Long, motorIndex: Int, value: Float) {

@@ -1,7 +1,7 @@
 package eu.dreadhonk.apps.toycontrol
 
 import android.content.Intent
-import eu.dreadhonk.apps.toycontrol.control.ToyControlService
+import eu.dreadhonk.apps.toycontrol.service.ToyControlService
 
 class Application: android.app.Application() {
     override fun onCreate() {

@@ -7,6 +7,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.SystemClock
 import android.util.Log
+import android.util.LongSparseArray
 import androidx.lifecycle.*
 import eu.dreadhonk.apps.toycontrol.data.DeviceWithIO
 import eu.dreadhonk.apps.toycontrol.devices.DeviceManager
@@ -408,5 +409,19 @@ class ToyController(private val sensors: SensorManager,
                 node.invalidated = true
             }
         }
+    }
+
+    fun getAllCurrentOutputs(): LongSparseArray<FloatArray> {
+        val task = FutureTask<LongSparseArray<FloatArray>> {
+            val result = LongSparseArray<FloatArray>()
+            for (pair in toyNodes) {
+                val values = FloatArray(pair.value.inputs.size)
+                pair.value.inputs.copyInto(values)
+                result.put(pair.key, values)
+            }
+            result
+        }
+        worker.post(task)
+        return task.get()
     }
 }

@@ -82,32 +82,28 @@ class DeviceManager(database: DeviceDatabase) {
                 dao.update(provider.copy(displayName=defaultDisplayName))
             }
         }
-
-        if (provider.online) {
-            for (device in provider.devices()) {
-                handleDeviceOnline(provider, device)
-            }
-        }
         provider.listener = ownListener
     }
 
-    fun deleteProvider(provider: DeviceProvider) {
+    fun unregisterProvider(uri: String) {
         val listener = this.listener
-        if (mProviders.remove(provider.uri) != null) {
-            val dao = database.providers()
-            var localProvider: Provider
-            if (listener != null) {
-                val info = dao.getWithDevicesByURI(provider.uri)!!
-                localProvider = info.provider
-                for (device in info.devices) {
-                    listener.deviceOffline(localProvider, device)
-                    listener.deviceDeleted(localProvider, device)
-                }
-            } else {
-                localProvider = dao.getByURI(provider.uri)!!
-            }
-            provider.listener = null
-            dao.delete(localProvider)
+        val provider = mProviders.remove(uri)
+        if (provider == null) {
+            return
         }
+        val dao = database.providers()
+        var localProvider: Provider
+        if (listener != null) {
+            val info = dao.getWithDevicesByURI(provider.uri)!!
+            localProvider = info.provider
+            for (device in info.devices) {
+                listener.deviceOffline(localProvider, device)
+                listener.deviceDeleted(localProvider, device)
+            }
+        } else {
+            localProvider = dao.getByURI(provider.uri)!!
+        }
+        provider.listener = null
+        dao.delete(localProvider)
     }
 }

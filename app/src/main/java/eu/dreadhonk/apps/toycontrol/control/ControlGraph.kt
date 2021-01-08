@@ -193,27 +193,27 @@ class ControlGraph {
 
         for (inNode in tmpNodes) {
             if (!nodeHasInternalInputs(inNode, tmpInEdges)) {
-                //Log.v("ControlGraph", String.format("updateTopology: adding %s to initial set", inNode.javaClass.simpleName))
+                Log.v("ControlGraph", String.format("updateTopology: adding %s to initial set", inNode.javaClass.simpleName))
                 noincoming.add(inNode)
             }
         }
 
         while (noincoming.isNotEmpty()) {
             val currNode = noincoming.removeAt(noincoming.size - 1)
-            //Log.v("ControlGraph", String.format("updateTopology: processing: %s", currNode.javaClass.simpleName))
+            Log.v("ControlGraph", String.format("updateTopology: processing: %s", currNode.javaClass.simpleName))
             sortedNodes.add(currNode)
             val dests = tmpOutEdges.get(currNode)
             if (dests == null || dests.isEmpty()) {
-                //Log.v("ControlGraph", String.format("updateTopology: no outbound edges"))
+                Log.v("ControlGraph", String.format("updateTopology: no outbound edges"))
                 continue
             }
 
             for (edge in dests) {
-                /*Log.v("ControlGraph", String.format("updateTopology: processing edge %s:%d -> %s:%d",
+                Log.v("ControlGraph", String.format("updateTopology: processing edge %s:%d -> %s:%d",
                     currNode,
                     edge.outIndex,
                     edge.dest.node,
-                    edge.dest.inIndex))*/
+                    edge.dest.inIndex))
                 tmpInEdges.remove(edge.dest)
                 if (!nodeHasInternalInputs(edge.dest.node, tmpInEdges)) {
                     if (noincoming.contains(edge.dest.node)) {
