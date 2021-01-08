@@ -4,9 +4,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.*
 import android.hardware.SensorManager
-import android.os.Handler
-import android.os.IBinder
-import android.os.PowerManager
+import android.os.*
 import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -26,6 +24,7 @@ import org.metafetish.buttplug.client.ButtplugClient
 import org.metafetish.buttplug.client.ButtplugEmbeddedClient
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.locks.ReentrantLock
 
 class ToyControlService : Service() {
     companion object {
@@ -41,6 +40,9 @@ class ToyControlService : Service() {
     private lateinit var deviceManager: DeviceManager
 
     private lateinit var wakeLock: PowerManager.WakeLock
+
+    private val remoteListenerLock = ReentrantLock()
+    private val remoteListeners = ArrayList<Messenger>()
 
     private val debugDevices = DebugDeviceProvider()
 
@@ -64,29 +66,48 @@ class ToyControlService : Service() {
         override fun deviceDeleted(provider: Provider, device: Device) {
             Log.i("ToyControlService", "Device deleted: ${device.displayName} (at ${provider.displayName})")
             removeDevice(device.id)
+            broadcastToListeners(DeviceEvent(DeviceEventType.DEVICE_DELETED, device.id))
         }
 
         override fun deviceOffline(provider: Provider, device: Device) {
             Log.i("ToyControlService", "Device went offline: ${device.displayName} (at ${provider.displayName})")
             removeDevice(device.id)
+            broadcastToListeners(DeviceEvent(DeviceEventType.DEVICE_OFFLINE, device.id))
         }
 
         override fun deviceOnline(provider: Provider, device: DeviceWithIO) {
-            val deviceId = device.device.providerDeviceId
+            val providerDeviceId = device.device.providerDeviceId
+            val deviceId = device.device.id
             val providerUri = provider.uri!!
             controller.addDevice(device) {
                 val provider = deviceManager.getProviderByUri(providerUri)!!
-                Log.d("ToyControlService", "Setting device "+deviceId+" motors to "+it)
-                provider.setMotors(deviceId, it)
+                Log.d("ToyControlService", "Setting device "+providerDeviceId+" motors to "+it)
+                provider.setMotors(providerDeviceId, it)
+                broadcastValuesToListeners(deviceId, it)
             }
             updateDeviceCount()
+            broadcastToListeners(DeviceEvent(DeviceEventType.DEVICE_ONLINE, deviceId))
         }
     }
 
-    public interface DeviceEventListener {
-        fun deviceOnline(provider: Provider, device: DeviceWithIO)
-        fun deviceOffline(provider: Provider, device: Device)
-        fun deviceDeleted(provider: Provider, device: Device)
+    private fun broadcastToListeners(ev: Object) {
+        synchronized(remoteListenerLock) {
+            val backup = ArrayList<Messenger>(remoteListeners)
+            for (listener in backup) {
+                try {
+                    val msg = Message.obtain()
+                    msg.obj = ev
+                    listener.send(msg)
+                } catch (e: RemoteException) {
+                    Log.w("ToyControlService", "listener disappeared, removing")
+                    remoteListeners.remove(listener)
+                }
+            }
+        }
+    }
+
+    private fun broadcastValuesToListeners(deviceId: Long, motors: FloatArray) {
+        broadcastToListeners(DeviceOutputEvent(deviceId, motors))
     }
 
     open class Connection(
@@ -296,5 +317,17 @@ class ToyControlService : Service() {
     fun stop() {
         stopForeground(true)
         stopSelf()
+    }
+
+    fun registerDeviceEventListener(messenger: Messenger) {
+        synchronized(remoteListenerLock) {
+            remoteListeners.add(messenger)
+        }
+    }
+
+    fun unregisterDeviceEventListener(messenger: Messenger) {
+        synchronized(remoteListenerLock) {
+            remoteListeners.remove(messenger)
+        }
     }
 }

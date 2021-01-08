@@ -9,4 +9,6 @@
     <color name="sliderKnobBorder">#000000</color>
     <color name="sliderKnob">#7f7f7f</color>
     <color name="sliderKnobGrip">#101010</color>
+
+    <color name="liveviewBackground">#140306</color>
 </resources>
