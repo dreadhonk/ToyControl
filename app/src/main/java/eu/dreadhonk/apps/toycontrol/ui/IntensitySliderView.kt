@@ -1,13 +1,14 @@
 package eu.dreadhonk.apps.toycontrol.ui
 
-import android.R
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.widget.AutoCompleteTextView
 import kotlin.math.roundToInt
 
 class IntensitySliderView: View {

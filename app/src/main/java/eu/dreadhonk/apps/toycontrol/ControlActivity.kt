@@ -4,25 +4,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.widget.LinearLayout
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import eu.dreadhonk.apps.toycontrol.control.MathUtil
+import androidx.appcompat.app.AppCompatActivity
 import eu.dreadhonk.apps.toycontrol.control.SimpleControlMode
 import eu.dreadhonk.apps.toycontrol.control.ToyControlService
-import eu.dreadhonk.apps.toycontrol.data.Device
 import eu.dreadhonk.apps.toycontrol.data.DeviceWithIO
 import eu.dreadhonk.apps.toycontrol.ui.IntensityControl
-import eu.dreadhonk.apps.toycontrol.ui.ValueView
 import java.util.concurrent.Executors
 
 class ControlActivity : AppCompatActivity() {

@@ -2,15 +2,11 @@ package eu.dreadhonk.apps.toycontrol.devices
 
 import android.util.Log
 import android.util.LongSparseArray
-import androidx.core.util.forEach
 import androidx.core.util.valueIterator
 import org.metafetish.buttplug.client.ButtplugClient
-import org.metafetish.buttplug.core.IButtplugDevice
 import org.metafetish.buttplug.core.Messages.DeviceAdded
 import org.metafetish.buttplug.core.Messages.DeviceRemoved
-import org.metafetish.buttplug.core.Messages.SingleMotorVibrateCmd
 import org.metafetish.buttplug.core.Messages.VibrateCmd
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 class ButtplugDeviceProvider(client: ButtplugClient): DeviceProvider {

@@ -1,8 +1,8 @@
 package eu.dreadhonk.apps.toycontrol.control
 
-import org.junit.Test
+import org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.Assert.*
+import org.junit.Test
 
 class QuantizerNodeTest {
     private lateinit var node: QuantizerNode

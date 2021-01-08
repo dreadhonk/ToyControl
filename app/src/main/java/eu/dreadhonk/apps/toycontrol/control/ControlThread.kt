@@ -6,8 +6,6 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
 import org.metafetish.buttplug.core.Messages.SingleMotorVibrateCmd
-import org.metafetish.buttplug.core.Messages.VibrateCmd
-import java.util.concurrent.atomic.AtomicInteger
 
 class ControlThread(service: ToyControlService,
                     interval: Long,

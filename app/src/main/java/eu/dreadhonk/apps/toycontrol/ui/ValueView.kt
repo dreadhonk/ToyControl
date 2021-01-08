@@ -2,12 +2,8 @@ package eu.dreadhonk.apps.toycontrol.ui
 
 import android.content.Context
 import android.graphics.*
-import android.graphics.drawable.Drawable
-import android.text.TextPaint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
-import eu.dreadhonk.apps.toycontrol.R
 import kotlin.math.roundToInt
 
 /**

@@ -1,7 +1,6 @@
 package eu.dreadhonk.apps.toycontrol.control
 
 import android.util.Log
-import kotlin.IllegalArgumentException
 
 class ControlGraph {
     private val nodes = ArrayList<Node>();

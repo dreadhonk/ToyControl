@@ -9,9 +9,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import eu.dreadhonk.apps.toycontrol.ControlActivity
-import eu.dreadhonk.apps.toycontrol.MainActivity
 import eu.dreadhonk.apps.toycontrol.R
 
 class ControlNotification(private var context: Context) {
