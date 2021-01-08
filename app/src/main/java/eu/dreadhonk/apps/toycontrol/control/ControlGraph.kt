@@ -239,7 +239,7 @@ class ControlGraph {
         }
 
         if (sortedNodes.size != tmpNodes.size) {
-            throw RuntimeException("something went terribly wrong")
+            throw RuntimeException("something went terribly wrong; I lost/made up nodes while sorting! ${sortedNodes.size} vs. ${tmpNodes.size}")
         }
     }
 
@@ -254,6 +254,18 @@ class ControlGraph {
         if (nodeOuts != null) {
             for (outEdge in nodeOuts) {
                 inEdges.remove(outEdge.dest)
+            }
+        }
+        for (inIndex in 0 until node.inputs.size) {
+            val inSlot = NodeInSlot(node, inIndex)
+            val peer = inEdges.remove(inSlot)
+            if (peer == null) {
+                continue
+            }
+            val peerOutEdges = outEdges[peer.node]!!
+            peerOutEdges.remove(HalfEdge(peer.outIndex, inSlot))
+            if (peerOutEdges.size == 0) {
+                outEdges.remove(peer.node)
             }
         }
         nodes.remove(node)
