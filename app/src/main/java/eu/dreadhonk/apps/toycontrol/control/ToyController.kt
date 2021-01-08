@@ -402,9 +402,11 @@ class ToyController(private val sensors: SensorManager,
 
     fun setManualInput(deviceId: Long, motor: Int, value: Float) {
         worker.post {
-            val node = manualInputNodes[deviceId]!!
-            node.inputs[motor] = value
-            node.invalidated = true
+            val node = manualInputNodes[deviceId]
+            if (node != null) {
+                node.inputs[motor] = value
+                node.invalidated = true
+            }
         }
     }
 }
