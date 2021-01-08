@@ -9,7 +9,7 @@ import android.widget.*
 import eu.dreadhonk.apps.toycontrol.R
 import eu.dreadhonk.apps.toycontrol.control.SimpleControlMode
 
-class IntensityControl: LinearLayout {
+class IntensityControl: FrameLayout {
     interface IntensityControlListener {
         fun onManualValueChange(newValue: Float)
         fun onModeChange(newMode: SimpleControlMode)
@@ -162,24 +162,19 @@ class IntensityControl: LinearLayout {
         }
 
     private fun init(attrs: AttributeSet?, defStyle: Int) {
-        orientation = LinearLayout.VERTICAL
-        val padding = Math.round(resources.displayMetrics.density * 4)
-        setPadding(padding, padding, padding, padding)
+        context.getSystemService(LayoutInflater::class.java)!!.inflate(
+            R.layout.intensity_control,
+            this,
+            true
+        )
 
-        val topLayout = LinearLayout(context)
-        topLayout.orientation = LinearLayout.HORIZONTAL
+        mDeviceLabel = findViewById(R.id.device_label)
+        mDevicePort = findViewById(R.id.device_port)
 
-        mDeviceLabel = TextView(context)
-        mDeviceLabel.text = "dev"
-        mDevicePort = TextView(context)
-        mDevicePort.text = "M1"
-
-        topLayout.addView(mDeviceLabel, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1.0f))
-        topLayout.addView(mDevicePort, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.0f))
-
-        mMode = Spinner(context)
-        mMode.setPadding(0, 0, 0, 0)
+        mMode = findViewById(R.id.mode)
         mMode.onItemSelectedListener = mItemSelectedListener
+
+        mSlider = findViewById(R.id.intensity_slider)
 
         val modeLabelArray = resources.getStringArray(R.array.control_simple_inputs_list)
         val modeArray = arrayListOf(
@@ -221,16 +216,10 @@ class IntensityControl: LinearLayout {
             mMode.adapter = adapter
         }
 
-        mSlider = IntensitySliderView(context)
+        mSlider = findViewById(R.id.intensity_slider)
         mSlider.setOnValueChangedListener(mEventForwarder)
-        mFloatButton = Switch(context)
-        mFloatButton.text = context.getString(R.string.switch_keep_floating)
 
-        addView(topLayout, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 0.0f))
-        addView(mMode, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 0.0f))
-        addView(mSlider, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1.0f))
-        addView(mFloatButton, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 0.0f))
-
+        mFloatButton = findViewById(R.id.btn_float)
         mFloatButton.setOnClickListener {
             mSlider.float = mFloatButton.isChecked
         }
